@@ -42,6 +42,9 @@ jobs:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+        id-token: write
+        contents: read
     # buildジョブが失敗した場合、deployジョブは実行されない（needsによる依存）
     steps:
       - name: Download build artifact
