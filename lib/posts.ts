@@ -99,6 +99,8 @@ export type SearchablePost = {
   tags: string[];
   /** 本文の平文テキスト（クライアント側検索用） */
   plain: string;
+  /** サムネイル画像（未設定の記事はundefined） */
+  thumbnail?: Post["thumbnail"];
 };
 
 /**
@@ -114,5 +116,6 @@ export function getSearchIndex(): SearchablePost[] {
     date: post.date,
     tags: post.tags,
     plain: post.plain,
+    thumbnail: post.thumbnail,
   }));
 }
