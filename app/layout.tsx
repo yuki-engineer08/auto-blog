@@ -32,6 +32,17 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-paper text-ink">
         <header className="border-b border-line">
+          <Link
+            href="/"
+            aria-label="journal/ 記事一覧トップへ戻る"
+            className="block border-b border-line"
+          >
+            <img
+              src="/images/header.jpg"
+              alt="journal のバナー画像: CAREGIVER × ENGINEER — Blending Human Compassion with Technological Innovation"
+              className="h-24 w-full object-cover sm:h-32 md:h-40"
+            />
+          </Link>
           <div className="mx-auto flex w-full max-w-2xl items-baseline justify-between px-4 py-5">
             <Link
               href="/"
