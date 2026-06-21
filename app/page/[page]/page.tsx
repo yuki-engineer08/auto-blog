@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getPostsByPage,
@@ -7,6 +8,7 @@ import {
 import { PostList } from "@/components/post-list";
 import { Pagination } from "@/components/pagination";
 import { SearchBox } from "@/components/search-box";
+import { defaultOgImage, siteUrl } from "@/lib/site";
 
 type Props = {
   params: Promise<{ page: string }>;
@@ -18,6 +20,31 @@ export function generateStaticParams() {
   return Array.from({ length: Math.max(0, totalPages - 1) }, (_, i) => ({
     page: String(i + 2),
   }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { page } = await params;
+  const title = `記事一覧 ${page}ページ目 | journal`;
+  const description = "個人の技術ブログ journal の記事一覧。";
+  const url = `${siteUrl}/page/${page}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url,
+      images: [defaultOgImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [defaultOgImage],
+    },
+  };
 }
 
 export default async function PaginatedHome({ params }: Props) {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Zen_Kaku_Gothic_New, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-import { siteProfile, socialLinks } from "@/lib/site";
+import { siteProfile, socialLinks, siteUrl } from "@/lib/site";
 
 const zenKaku = Zen_Kaku_Gothic_New({
   variable: "--font-zen-kaku",
@@ -17,6 +17,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "journal",
   description: "個人の技術ブログ",
 };

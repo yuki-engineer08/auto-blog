@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   getPostsByPage,
   getSearchIndex,
@@ -6,6 +7,28 @@ import {
 import { PostList } from "@/components/post-list";
 import { Pagination } from "@/components/pagination";
 import { SearchBox } from "@/components/search-box";
+import { defaultOgImage, siteUrl } from "@/lib/site";
+
+const title = "記事一覧 | journal";
+const description = "個人の技術ブログ journal の記事一覧。";
+
+export const metadata: Metadata = {
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    type: "website",
+    url: siteUrl,
+    images: [defaultOgImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: [defaultOgImage],
+  },
+};
 
 export default function Home() {
   const currentPage = 1;

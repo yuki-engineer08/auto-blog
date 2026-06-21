@@ -7,6 +7,27 @@
  *   - socialLinks.href : 各SNSアカウントの実URL（現状は your-handle のプレースホルダ）
  */
 
+/**
+ * サイトの公開ベースURL（OGP画像等を絶対URLで出力するために使用）。
+ * TODO(運営者): 実際のCloudFront公開ドメイン（またはカスタムドメイン）に差し替えること。
+ *   例: "https://d111111abcdef8.cloudfront.net" や "https://blog.example.com"
+ */
+export const siteUrl = "https://example.com";
+
+/**
+ * サイト共通のデフォルトOGP画像（/public からの絶対パス）。
+ * サムネイル未設定の記事や、記事一覧・タグページ等の非記事ページで使用する。
+ * Sprint4で導入したヘッダーバナー画像（public/images/header.jpg）を流用している。
+ * width/height は header.jpg の実寸（1792x592）。
+ * TODO(運営者): SNS映えを優先するなら、OGP推奨比率(1.91:1, 例 1200x630)の専用画像を
+ *   用意して url/width/height を差し替えるとよい。
+ */
+export const defaultOgImage = {
+  url: "/images/header.jpg",
+  width: 1792,
+  height: 592,
+};
+
 export type SocialLink = {
   /** アクセシビリティ用ラベル兼 alt（例: "X (Twitter)"） */
   name: string;

@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MdxContent } from "@/components/mdx-content";
 import { TableOfContents } from "@/components/table-of-contents";
 import { TagLink } from "@/components/tag-link";
 import { formatLogDate, getPostBySlug, getPublishedPosts } from "@/lib/posts";
+import { defaultOgImage, siteUrl } from "@/lib/site";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -12,13 +14,38 @@ export function generateStaticParams() {
   return getPublishedPosts().map((post) => ({ slug: post.slug }));
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = getPostBySlug(slug);
   if (!post) return {};
+
+  const ogImage = post.thumbnail
+    ? {
+        url: post.thumbnail.src,
+        width: post.thumbnail.width,
+        height: post.thumbnail.height,
+        alt: post.title,
+      }
+    : { ...defaultOgImage, alt: post.title };
+
+  const url = `${siteUrl}/blog/${post.slug}`;
+
   return {
     title: post.title,
     description: post.description,
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      type: "article",
+      url,
+      images: [ogImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description,
+      images: [ogImage],
+    },
   };
 }
 

@@ -1,5 +1,28 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllTagsWithCount } from "@/lib/posts";
+import { defaultOgImage, siteUrl } from "@/lib/site";
+
+const title = "タグ一覧 | journal";
+const description = "個人の技術ブログ journal のタグ一覧。";
+
+export const metadata: Metadata = {
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    type: "website",
+    url: `${siteUrl}/tags`,
+    images: [defaultOgImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: [defaultOgImage],
+  },
+};
 
 export default function TagsPage() {
   const tags = getAllTagsWithCount();
