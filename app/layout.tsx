@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
+import { Zen_Kaku_Gothic_New, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const zenKaku = Zen_Kaku_Gothic_New({
+  variable: "--font-zen-kaku",
   subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
-  title: "My Blog",
-  description: "個人ブログ",
+  title: "journal",
+  description: "個人の技術ブログ",
 };
 
 export default function RootLayout({
@@ -25,10 +28,31 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${zenKaku.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-zinc-900">
+      <body className="flex min-h-full flex-col bg-paper text-ink">
+        <header className="border-b border-line">
+          <div className="mx-auto flex w-full max-w-2xl items-baseline justify-between px-4 py-5">
+            <Link
+              href="/"
+              className="font-mono text-sm font-medium tracking-tight text-ink"
+            >
+              journal<span className="text-signal">/</span>
+            </Link>
+            <Link
+              href="/tags"
+              className="font-mono text-xs tracking-widest text-ink-dim transition hover:text-signal"
+            >
+              tags/
+            </Link>
+          </div>
+        </header>
         {children}
+        <footer className="mt-auto border-t border-line">
+          <div className="mx-auto w-full max-w-2xl px-4 py-6 font-mono text-xs tracking-wide text-ink-dim">
+            EOF
+          </div>
+        </footer>
       </body>
     </html>
   );

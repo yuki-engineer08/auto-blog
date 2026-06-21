@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Post } from "@/lib/posts";
+import { formatLogDate } from "@/lib/posts";
 
 type PostListProps = {
   posts: Post[];
@@ -7,23 +8,26 @@ type PostListProps = {
 
 export function PostList({ posts }: PostListProps) {
   return (
-    <ul className="mt-8 space-y-6">
+    <ul className="mt-10 divide-y divide-line">
       {posts.map((post) => (
-        <li key={post.slug}>
-          <Link
-            href={`/blog/${post.slug}`}
-            className="block rounded-lg border border-zinc-200 p-5 transition hover:border-zinc-400"
-          >
-            <h2 className="text-xl font-semibold text-zinc-900">
+        <li key={post.slug} className="py-6 first:pt-0">
+          <Link href={`/blog/${post.slug}`} className="group block">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-xs text-ink-dim">
+              <time dateTime={post.date} className="tracking-wide">
+                {formatLogDate(post.date)}
+              </time>
+              {post.tags.length > 0 && (
+                <span className="flex flex-wrap gap-x-2 tracking-wide">
+                  {post.tags.map((tag) => (
+                    <span key={tag}>[{tag}]</span>
+                  ))}
+                </span>
+              )}
+            </div>
+            <h2 className="mt-2 text-xl font-bold tracking-tight text-ink transition group-hover:text-signal">
               {post.title}
             </h2>
-            <p className="mt-2 text-zinc-600">{post.description}</p>
-            <time
-              dateTime={post.date}
-              className="mt-3 block text-sm text-zinc-500"
-            >
-              {new Date(post.date).toLocaleDateString("ja-JP")}
-            </time>
+            <p className="mt-1.5 text-ink-dim">{post.description}</p>
           </Link>
         </li>
       ))}

@@ -1,22 +1,30 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* paper: 紙/ホワイトボードのような冷たいオフホワイト */
+  --color-paper: #f6f7f4;
+  /* ink: 純黒ではない温かみのあるグラファイト（本文） */
+  --color-ink: #1a1d1a;
+  /* ink-dim: 日付・概要などのメタ情報 */
+  --color-ink-dim: #5b6359;
+  /* line: ヘアライン区切り */
+  --color-line: #d8ddd4;
+  /* signal: 「ビルド成功」のフォレストグリーン（メインアクセント） */
+  --color-signal: #2f6b4f;
+  /* flag: 「警告」寄りの落ち着いたラスト（サブアクセント / hover） */
+  --color-flag: #a85c32;
+  /* terminal: コードブロックだけが暗くなる"窓" */
+  --color-terminal: #14170f;
+  --color-terminal-text: #dce3d6;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-zen-kaku);
+  --font-mono: var(--font-plex-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
 }
 
 .anchor-link {
@@ -25,11 +33,75 @@ body {
 }
 
 .anchor-link:hover {
+  color: var(--color-signal);
   text-decoration: underline;
+  text-decoration-color: var(--color-line);
 }
 
-pre {
-  overflow-x: auto;
+/* 本文（MDX）のタイポグラフィ。prose-zincの代わりにトークンを直接割り当てる */
+.prose-ledger {
+  --tw-prose-body: var(--color-ink);
+  --tw-prose-headings: var(--color-ink);
+  --tw-prose-lead: var(--color-ink-dim);
+  --tw-prose-links: var(--color-signal);
+  --tw-prose-bold: var(--color-ink);
+  --tw-prose-counters: var(--color-ink-dim);
+  --tw-prose-bullets: var(--color-line);
+  --tw-prose-hr: var(--color-line);
+  --tw-prose-quotes: var(--color-ink);
+  --tw-prose-quote-borders: var(--color-signal);
+  --tw-prose-captions: var(--color-ink-dim);
+  --tw-prose-code: var(--color-ink);
+  --tw-prose-pre-code: var(--color-terminal-text);
+  --tw-prose-pre-bg: var(--color-terminal);
+  --tw-prose-th-borders: var(--color-line);
+  --tw-prose-td-borders: var(--color-line);
+}
+
+.prose-ledger :where(code):not(:where([data-rehype-pretty-code-figure] *)) {
+  background-color: color-mix(in srgb, var(--color-signal) 10%, transparent);
+  border-radius: 0.25rem;
+  padding: 0.15em 0.4em;
+  font-weight: 500;
+}
+
+.prose-ledger img {
+  border: 1px solid var(--color-line);
+  border-radius: 0.25rem;
+}
+
+/* コードブロック: 紙面に埋め込まれた暗いターミナル窓（このデザインのシグネチャ） */
+[data-rehype-pretty-code-figure] {
+  margin: 1.75rem 0;
   border-radius: 0.5rem;
-  padding: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(220, 227, 214, 0.12);
+}
+
+.prose-ledger :where(pre):where([data-language]) {
+  position: relative;
+  margin: 0;
+  padding: 2.5rem 1.25rem 1.25rem;
+  border-radius: 0;
+}
+
+[data-rehype-pretty-code-figure] pre::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.55rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-signal);
+  border-bottom: 1px solid rgba(220, 227, 214, 0.1);
+}
+
+[data-rehype-pretty-code-figure] code {
+  display: grid;
+  font-size: 0.875rem;
+  line-height: 1.75;
 }

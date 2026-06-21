@@ -32,7 +32,8 @@ export default async function PaginatedHome({ params }: Props) {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
-      <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+      <p className="font-mono text-xs tracking-widest text-signal">index/</p>
+      <h1 className="mt-2 text-3xl font-black tracking-tight text-ink">
         記事一覧
       </h1>
       <PostList posts={pagePosts} />

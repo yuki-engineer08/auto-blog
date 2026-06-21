@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MdxContent } from "@/components/mdx-content";
-import { getPostBySlug, getPublishedPosts } from "@/lib/posts";
+import { TagLink } from "@/components/tag-link";
+import { formatLogDate, getPostBySlug, getPublishedPosts } from "@/lib/posts";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -29,36 +29,29 @@ export default async function BlogPostPage({ params }: Props) {
     notFound();
   }
 
-  const formattedDate = new Date(post.date).toLocaleDateString("ja-JP", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
   return (
     <article className="mx-auto w-full max-w-2xl px-4 py-12">
-      <header className="mb-10">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+      <header className="mb-10 border-b border-line pb-8">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-xs text-ink-dim">
+          <time dateTime={post.date} className="tracking-wide">
+            {formatLogDate(post.date)}
+          </time>
+          {post.tags.length > 0 && (
+            <ul className="flex flex-wrap gap-x-2">
+              {post.tags.map((tag) => (
+                <li key={tag}>
+                  <TagLink tag={tag} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <h1 className="mt-3 text-3xl font-black tracking-tight text-ink">
           {post.title}
         </h1>
-        <p className="mt-3 text-zinc-600">{post.description}</p>
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500">
-          <time dateTime={post.date}>{formattedDate}</time>
-          <ul className="flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
-              <li key={tag}>
-                <Link
-                  href={`/tags/${tag}`}
-                  className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-200"
-                >
-                  {tag}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <p className="mt-3 text-ink-dim">{post.description}</p>
       </header>
-      <div className="prose prose-zinc max-w-none">
+      <div className="prose prose-ledger max-w-none">
         <MdxContent code={post.content} />
       </div>
     </article>

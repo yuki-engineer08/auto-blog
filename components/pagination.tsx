@@ -27,41 +27,35 @@ export function Pagination({
   return (
     <nav
       aria-label="ページネーション"
-      className="mt-10 flex items-center justify-between"
+      className="mt-12 flex items-center justify-between border-t border-line pt-6 font-mono text-xs"
     >
       {hasPrev ? (
         <Link
           href={getHref(currentPage - 1)}
-          className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-500"
+          className="tracking-wide text-ink transition hover:text-signal"
         >
-          前のページ
+          ← prev
         </Link>
       ) : (
-        <span
-          aria-disabled="true"
-          className="cursor-not-allowed rounded-md border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-400"
-        >
-          前のページ
+        <span aria-disabled="true" className="tracking-wide text-line">
+          ← prev
         </span>
       )}
 
-      <span className="text-sm text-zinc-600">
-        {currentPage} / {totalPages} ページ
+      <span className="tracking-widest text-ink-dim">
+        page {currentPage} / {totalPages}
       </span>
 
       {hasNext ? (
         <Link
           href={getHref(currentPage + 1)}
-          className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-500"
+          className="tracking-wide text-ink transition hover:text-signal"
         >
-          次のページ
+          next →
         </Link>
       ) : (
-        <span
-          aria-disabled="true"
-          className="cursor-not-allowed rounded-md border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-400"
-        >
-          次のページ
+        <span aria-disabled="true" className="tracking-wide text-line">
+          next →
         </span>
       )}
     </nav>

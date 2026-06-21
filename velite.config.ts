@@ -56,7 +56,8 @@ export default defineConfig({
         rehypePrettyCode,
         {
           theme: "github-dark",
-          keepBackground: true,
+          // 背景色はテーマ側ではなくCSS側（--color-terminal）で統一して持たせる
+          keepBackground: false,
         },
       ],
     ],

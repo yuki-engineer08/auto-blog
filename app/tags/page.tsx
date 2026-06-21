@@ -6,20 +6,22 @@ export default function TagsPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
-      <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+      <p className="font-mono text-xs tracking-widest text-signal">tags/</p>
+      <h1 className="mt-2 text-3xl font-black tracking-tight text-ink">
         タグ一覧
       </h1>
-      <ul className="mt-8 flex flex-wrap gap-3">
+      <ul className="mt-10 divide-y divide-line font-mono text-sm">
         {tags.map(({ tag, count }) => (
           <li key={tag}>
             <Link
               href={`/tags/${tag}`}
-              className="flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-400"
+              className="group flex items-baseline justify-between gap-4 py-3 transition hover:text-signal"
             >
-              <span>#{tag}</span>
-              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">
-                {count}
+              <span className="tracking-wide text-ink group-hover:text-signal">
+                [{tag}]
               </span>
+              <span className="h-px flex-1 bg-line" aria-hidden="true" />
+              <span className="shrink-0 text-ink-dim">{count} 件</span>
             </Link>
           </li>
         ))}

@@ -7,6 +7,14 @@ export type Post = NonNullable<PostOrNull>;
 export const POSTS_PER_PAGE = 5;
 
 /**
+ * 日付を `2026.06.21` 形式（ログ/タイムスタンプ風）に整形する。
+ * `date` はISO日付文字列（`YYYY-MM-DD...`）の先頭10文字を利用する。
+ */
+export function formatLogDate(date: string): string {
+  return date.slice(0, 10).replaceAll("-", ".");
+}
+
+/**
  * 公開済み（published: true）の記事を日付の新しい順にソートして返す。
  * Veliteのtransformでpublished: falseの記事はnullに変換されているため、
  * ここではnullの除外のみ行えばよいが、念のためpublishedも確認する。
