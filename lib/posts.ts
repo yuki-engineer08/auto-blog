@@ -90,3 +90,29 @@ export function getAllTagsWithCount(): TagWithCount[] {
 export function getAllTags(): string[] {
   return getAllTagsWithCount().map(({ tag }) => tag);
 }
+
+export type SearchablePost = {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  tags: string[];
+  /** 本文の平文テキスト（クライアント側検索用） */
+  plain: string;
+};
+
+/**
+ * クライアント側検索のための公開記事インデックスを返す。
+ * `published: false` の記事は含まれない（`getPublishedPosts` が既に除外しているため）。
+ * 日付の新しい順にソートされている。
+ */
+export function getSearchIndex(): SearchablePost[] {
+  return getPublishedPosts().map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    description: post.description,
+    date: post.date,
+    tags: post.tags,
+    plain: post.plain,
+  }));
+}

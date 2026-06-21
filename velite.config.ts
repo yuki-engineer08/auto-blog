@@ -1,7 +1,20 @@
-import { defineConfig, defineCollection, s } from "velite";
+import { defineConfig, defineCollection, s, z } from "velite";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypePrettyCode from "rehype-pretty-code";
+
+/**
+ * 本文の平文テキストを取り出すスキーマ（クライアント側の検索インデックス用）。
+ * Veliteが内部的に生成する `meta.plain`（HTML/Markdown記法を除いたプレーンテキスト）を利用する。
+ * `s.excerpt()` 等と同じ実装パターン（`z.custom` + `transform` で `meta` にアクセス）に倣う。
+ */
+const plainText = () =>
+  z
+    .custom<string | undefined>((value) => value === undefined || typeof value === "string")
+    .transform((value, ctx) => {
+      const meta = (ctx as unknown as { meta?: { plain?: string } }).meta;
+      return value ?? meta?.plain ?? "";
+    });
 
 const posts = defineCollection({
   name: "Post",
@@ -17,6 +30,7 @@ const posts = defineCollection({
       metadata: s.metadata(),
       excerpt: s.excerpt(),
       content: s.mdx(),
+      plain: plainText(),
     })
     .transform((data) => {
       // published: false の記事はビルド出力から除外する

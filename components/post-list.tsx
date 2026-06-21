@@ -1,9 +1,21 @@
 import Link from "next/link";
-import type { Post } from "@/lib/posts";
 import { formatLogDate } from "@/lib/posts";
 
+/**
+ * 一覧表示に必要な最小限のフィールド。
+ * `Post`（Velite由来の全フィールドを持つ型）・`SearchablePost`（検索インデックス用の型）
+ * のいずれを渡しても表示できるようにする。
+ */
+type PostListItem = {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  tags: string[];
+};
+
 type PostListProps = {
-  posts: Post[];
+  posts: PostListItem[];
 };
 
 export function PostList({ posts }: PostListProps) {

@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
-import { getPostsByPage, getTotalPages } from "@/lib/posts";
+import {
+  getPostsByPage,
+  getSearchIndex,
+  getTotalPages,
+} from "@/lib/posts";
 import { PostList } from "@/components/post-list";
 import { Pagination } from "@/components/pagination";
+import { SearchBox } from "@/components/search-box";
 
 type Props = {
   params: Promise<{ page: string }>;
@@ -29,6 +34,7 @@ export default async function PaginatedHome({ params }: Props) {
   }
 
   const pagePosts = getPostsByPage(currentPage);
+  const searchIndex = getSearchIndex();
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
@@ -36,8 +42,15 @@ export default async function PaginatedHome({ params }: Props) {
       <h1 className="mt-2 text-3xl font-black tracking-tight text-ink">
         記事一覧
       </h1>
-      <PostList posts={pagePosts} />
-      <Pagination currentPage={currentPage} totalPages={totalPages} />
+      <SearchBox
+        searchIndex={searchIndex}
+        defaultView={
+          <>
+            <PostList posts={pagePosts} />
+            <Pagination currentPage={currentPage} totalPages={totalPages} />
+          </>
+        }
+      />
     </main>
   );
 }
