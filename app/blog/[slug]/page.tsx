@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { MdxContent } from "@/components/mdx-content";
+import { TableOfContents } from "@/components/table-of-contents";
 import { TagLink } from "@/components/tag-link";
 import { formatLogDate, getPostBySlug, getPublishedPosts } from "@/lib/posts";
 
@@ -51,6 +52,7 @@ export default async function BlogPostPage({ params }: Props) {
         </h1>
         <p className="mt-3 text-ink-dim">{post.description}</p>
       </header>
+      <TableOfContents toc={post.toc} />
       <div className="prose prose-ledger max-w-none">
         <MdxContent code={post.content} />
       </div>
