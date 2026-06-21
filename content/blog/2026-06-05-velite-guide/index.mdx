@@ -1,0 +1,22 @@
+---
+title: "Veliteで始めるコンテンツ管理"
+description: "MarkdownやMDXのコンテンツをVeliteで型安全に管理する方法を解説します。"
+date: "2026-06-05"
+tags: ["velite", "nextjs"]
+published: true
+---
+
+Veliteを使うと、MarkdownやMDXのフロントマターをZodスキーマでバリデーションしながら型安全に扱えます。
+
+## スキーマ定義
+
+```ts
+const posts = defineCollection({
+  name: "Post",
+  pattern: "blog/**/index.mdx",
+});
+```
+
+## まとめ
+
+ビルド時にコンテンツの不整合を検知できるのがVeliteの強みです。

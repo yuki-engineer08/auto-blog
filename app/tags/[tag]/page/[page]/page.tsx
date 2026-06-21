@@ -1,0 +1,59 @@
+import { notFound } from "next/navigation";
+import {
+  getAllTags,
+  getPostsByTagAndPage,
+  getTotalPagesForTag,
+} from "@/lib/posts";
+import { PostList } from "@/components/post-list";
+import { Pagination } from "@/components/pagination";
+
+type Props = {
+  params: Promise<{ tag: string; page: string }>;
+};
+
+export function generateStaticParams() {
+  return getAllTags().flatMap((tag) => {
+    const totalPages = getTotalPagesForTag(tag);
+    // 1ページ目は `/tags/[tag]` で表示するため、2ページ目以降のみ生成する
+    return Array.from({ length: Math.max(0, totalPages - 1) }, (_, i) => ({
+      tag,
+      page: String(i + 2),
+    }));
+  });
+}
+
+export default async function TagPaginatedPage({ params }: Props) {
+  const { tag, page } = await params;
+
+  if (!getAllTags().includes(tag)) {
+    notFound();
+  }
+
+  const currentPage = Number(page);
+  const totalPages = getTotalPagesForTag(tag);
+
+  if (
+    !Number.isInteger(currentPage) ||
+    currentPage < 2 ||
+    currentPage > totalPages
+  ) {
+    notFound();
+  }
+
+  const pagePosts = getPostsByTagAndPage(tag, currentPage);
+
+  return (
+    <main className="mx-auto w-full max-w-2xl px-4 py-12">
+      <p className="text-sm font-medium text-zinc-500">タグ</p>
+      <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+        #{tag}
+      </h1>
+      <PostList posts={pagePosts} />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        getHref={(p) => (p <= 1 ? `/tags/${tag}` : `/tags/${tag}/page/${p}`)}
+      />
+    </main>
+  );
+}

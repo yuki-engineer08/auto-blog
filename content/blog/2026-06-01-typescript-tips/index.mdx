@@ -1,0 +1,22 @@
+---
+title: "TypeScriptの型推論を使いこなす"
+description: "TypeScriptの型推論の挙動を理解して、より安全なコードを書くためのコツを紹介します。"
+date: "2026-06-01"
+tags: ["typescript"]
+published: true
+---
+
+TypeScriptの型推論はとても強力ですが、挙動を正しく理解していないと思わぬ型エラーに遭遇します。
+
+## 基本的な型推論
+
+変数の初期化時に型推論が行われます。
+
+```ts
+const count = 1; // number
+const name = "foo"; // string
+```
+
+## まとめ
+
+型推論の挙動を理解しておくと、型注釈を減らしつつ安全なコードが書けます。

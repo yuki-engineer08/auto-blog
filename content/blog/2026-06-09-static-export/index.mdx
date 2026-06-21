@@ -1,0 +1,23 @@
+---
+title: "Next.jsの静的書き出し（output: export）を理解する"
+description: "output: 'export'設定によるNext.jsの静的サイト生成の仕組みと制約を解説します。"
+date: "2026-06-09"
+tags: ["nextjs"]
+published: true
+---
+
+`output: 'export'`を設定すると、Next.jsはサーバー機能を使わない静的なHTML/CSS/JSとして書き出されます。
+
+## 制約
+
+画像最適化APIやAPI Routesなど、サーバー機能に依存する機能は使えません。
+
+```ts
+const nextConfig = {
+  output: "export",
+};
+```
+
+## まとめ
+
+S3やCloudFrontのような静的ホスティングと組み合わせやすいのが利点です。

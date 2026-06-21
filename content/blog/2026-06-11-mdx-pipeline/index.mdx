@@ -1,0 +1,23 @@
+---
+title: "MDXパイプラインの作り方"
+description: "rehype-prettyCodeやrehype-slugを使ったMDXのレンダリングパイプライン構築を紹介します。"
+date: "2026-06-11"
+tags: ["mdx"]
+published: true
+---
+
+MDXのレンダリングパイプラインには、見出しへのアンカーリンク付与やシンタックスハイライトなどの処理を組み込めます。
+
+## 使用するプラグイン
+
+- rehype-slug
+- rehype-autolink-headings
+- rehype-pretty-code
+
+```ts
+const rehypePlugins = [rehypeSlug, rehypeAutolinkHeadings, rehypePrettyCode];
+```
+
+## まとめ
+
+プラグインを組み合わせることで読みやすい記事ページが作れます。

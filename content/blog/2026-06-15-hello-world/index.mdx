@@ -1,0 +1,76 @@
+---
+title: "Hello World: ブログを始めました"
+description: "このブログの最初の記事です。MDXパイプラインの動作確認を兼ねたサンプル記事です。"
+date: "2026-06-15"
+tags: ["blog", "nextjs"]
+published: true
+---
+
+このブログでは、日々の学びや技術的なメモを残していきます。
+この記事は MDX パイプラインの動作確認用のダミー記事です。
+
+## 自己紹介
+
+はじめまして。このブログを書いている者です。
+普段はソフトウェア開発をしながら、気になった技術トピックを調べてまとめています。
+
+### このブログについて
+
+このブログは以下の技術スタックで構築されています。
+
+- Next.js（`output: 'export'` による静的書き出し）
+- Velite（Markdown/MDXのコンテンツ管理）
+- Tailwind CSS
+
+## サンプル画像
+
+記事と同じフォルダに同梱した画像が、下記のように表示されます。
+
+![サンプルのグラデーション画像](./cover.png)
+
+## コードブロックの例
+
+シンタックスハイライトの動作確認用に、TypeScriptのコードを掲載します。
+
+```ts
+type Post = {
+  title: string;
+  description: string;
+  date: string;
+  tags: string[];
+  published: boolean;
+};
+
+function greet(post: Post): string {
+  return `Welcome to "${post.title}"!`;
+}
+
+console.log(greet({
+  title: "Hello World",
+  description: "最初の記事です",
+  date: "2026-06-15",
+  tags: ["blog", "nextjs"],
+  published: true,
+}));
+```
+
+もう一つ、シェルコマンドの例も載せておきます。
+
+```bash
+npm install
+npm run dev
+```
+
+## まとめ
+
+### 今後の予定
+
+今後はタグ一覧や記事一覧ページなど、ブログとしての機能を順次追加していく予定です。
+このセクションの見出しにもアンカーリンクが付与されているか確認してください。
+
+### 参考リンク
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Velite Documentation](https://velite.js.org/)
+
+読んでいただきありがとうございました。

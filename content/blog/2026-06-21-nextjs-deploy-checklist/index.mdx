@@ -1,0 +1,25 @@
+---
+title: "Next.jsアプリをデプロイする前のチェックリスト"
+description: "output: exportのNext.jsアプリをS3/CloudFrontへデプロイする前に確認しておきたい項目をまとめます。"
+date: "2026-06-21"
+tags: ["nextjs", "deploy"]
+published: true
+---
+
+静的書き出ししたNext.jsアプリを本番にデプロイする前には、いくつか確認しておきたい項目があります。
+
+## ビルドの確認
+
+`npm run build` がエラーなく完了することを確認します。
+
+```bash
+npm run build
+```
+
+## 出力ディレクトリの確認
+
+`out` ディレクトリに想定通りのHTMLファイルが生成されているかを確認します。
+
+## キャッシュ無効化
+
+CloudFrontのキャッシュ無効化を忘れずに行います。
