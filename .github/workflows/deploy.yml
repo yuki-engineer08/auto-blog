@@ -52,8 +52,6 @@ jobs:
         with:
           name: site-build
           path: out/
-      - name: Debug - check role arn
-        run: echo "ARN is ${{ secrets.AWS_ROLE_ARN }}"
         
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
