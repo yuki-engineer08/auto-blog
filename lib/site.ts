@@ -12,7 +12,7 @@
  * TODO(運営者): 実際のCloudFront公開ドメイン（またはカスタムドメイン）に差し替えること。
  *   例: "https://d111111abcdef8.cloudfront.net" や "https://blog.example.com"
  */
-export const siteUrl = "https://example.com";
+export const siteUrl = "https://d3o7t81m8nyt3g.cloudfront.net";
 
 /**
  * サイト共通のデフォルトOGP画像（/public からの絶対パス）。
@@ -39,7 +39,7 @@ export type SocialLink = {
 
 export const siteProfile = {
   /** TODO(運営者): 実際の表示名に差し替え */
-  name: "yuki",
+  name: "介護士AIエンジニアYuki",
   /** TODO(運営者): 実際の自己紹介文に差し替え */
   bio: "介護の現場で人と向き合った経験と、エンジニアとしてのものづくりを掛け合わせて活動しています。「CAREGIVER × ENGINEER」をテーマに、技術と人の温かさを橋渡しする試みや、日々の学びをこのブログに綴ります。",
   /** プロフィールアイコン（public/images/profile.jpg） */
@@ -50,13 +50,13 @@ export const socialLinks: SocialLink[] = [
   {
     name: "X (Twitter)",
     // TODO(運営者): 実際のXアカウントURLに差し替え
-    href: "https://x.com/your-handle",
+    href: "https://x.com/yuki_engineer08",
     icon: "/images/x-icon.png",
   },
   {
     name: "YouTube",
     // TODO(運営者): 実際のYouTubeチャンネルURLに差し替え
-    href: "https://youtube.com/@your-handle",
+    href: "https://www.youtube.com/@yuki_engineer08",
     icon: "/images/youtube-icon.png",
   },
 ];
