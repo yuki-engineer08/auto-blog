@@ -14,7 +14,7 @@ type Props = {
 };
 
 export function generateStaticParams() {
-  return getAllTags().flatMap((tag) => {
+  const params = getAllTags().flatMap((tag) => {
     const totalPages = getTotalPagesForTag(tag);
     // 1ページ目は `/tags/[tag]` で表示するため、2ページ目以降のみ生成する
     return Array.from({ length: Math.max(0, totalPages - 1) }, (_, i) => ({
@@ -22,6 +22,9 @@ export function generateStaticParams() {
       page: String(i + 2),
     }));
   });
+  // `output: "export"` は動的ルートに最低1パス必須なため、どのタグも2ページ目以降が
+  // 存在しない（記事が少ない）場合でもビルドできるよう、404になるダミーパスを返す
+  return params.length > 0 ? params : [{ tag: "__none__", page: "__none__" }];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
