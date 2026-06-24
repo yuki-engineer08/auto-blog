@@ -2,6 +2,7 @@ import { defineConfig, defineCollection, s, z } from "velite";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypePrettyCode from "rehype-pretty-code";
+import { remarkMermaid } from "./lib/remark-mermaid";
 
 /**
  * 本文の平文テキストを取り出すスキーマ（クライアント側の検索インデックス用）。
@@ -78,6 +79,6 @@ export default defineConfig({
         },
       ],
     ],
-    remarkPlugins: [],
+    remarkPlugins: [remarkMermaid],
   },
 });
