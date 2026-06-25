@@ -91,6 +91,33 @@ export function getAllTags(): string[] {
   return getAllTagsWithCount().map(({ tag }) => tag);
 }
 
+export type AdjacentPosts = {
+  /** 日付の新しい順で、現在の記事より1つ古い（次に読む）公開記事。存在しない場合は undefined */
+  previous?: Post;
+  /** 日付の新しい順で、現在の記事より1つ新しい（前に読む）公開記事。存在しない場合は undefined */
+  next?: Post;
+};
+
+/**
+ * 日付の新しい順に並べた公開記事一覧の中で、指定スラッグの記事の前後に位置する
+ * 公開記事を返す。`published: false` の記事は `getPublishedPosts` の時点で
+ * 既に除外されているため、前後の判定にも含まれない。
+ *
+ * 並びは新しい順なので、配列上で1つ前（index - 1）の記事が日付的には新しい記事
+ * （`next`）、1つ後（index + 1）の記事が日付的には古い記事（`previous`）となる。
+ * 対象記事が見つからない、または公開記事が1件のみの場合は両方 undefined を返す。
+ */
+export function getAdjacentPosts(slug: string): AdjacentPosts {
+  const allPosts = getPublishedPosts();
+  const index = allPosts.findIndex((post) => post.slug === slug);
+  if (index === -1) return {};
+
+  return {
+    previous: allPosts[index + 1],
+    next: allPosts[index - 1],
+  };
+}
+
 export type SearchablePost = {
   slug: string;
   title: string;

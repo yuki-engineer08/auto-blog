@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MdxContent } from "@/components/mdx-content";
+import { PostPager } from "@/components/post-pager";
+import { ScrollToTopButton } from "@/components/scroll-to-top-button";
 import { TableOfContents } from "@/components/table-of-contents";
 import { TagLink } from "@/components/tag-link";
-import { formatLogDate, getPostBySlug, getPublishedPosts } from "@/lib/posts";
+import {
+  formatLogDate,
+  getAdjacentPosts,
+  getPostBySlug,
+  getPublishedPosts,
+} from "@/lib/posts";
 import { defaultOgImage, siteUrl } from "@/lib/site";
 
 type Props = {
@@ -57,6 +64,8 @@ export default async function BlogPostPage({ params }: Props) {
     notFound();
   }
 
+  const adjacent = getAdjacentPosts(post.slug);
+
   return (
     <article className="mx-auto w-full max-w-2xl px-4 py-12">
       <header className="mb-10 border-b border-line pb-8">
@@ -83,6 +92,10 @@ export default async function BlogPostPage({ params }: Props) {
       <div className="prose prose-ledger max-w-none">
         <MdxContent code={post.content} />
       </div>
+      <div className="mt-10 flex justify-center sm:justify-end">
+        <ScrollToTopButton />
+      </div>
+      <PostPager adjacent={adjacent} />
     </article>
   );
 }
