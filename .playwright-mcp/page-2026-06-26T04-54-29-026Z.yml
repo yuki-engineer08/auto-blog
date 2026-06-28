@@ -1,0 +1,33 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - banner [ref=e11]:
+    - link "journal/ 記事一覧トップへ戻る" [ref=e12] [cursor=pointer]:
+      - /url: /
+      - 'img "journal のバナー画像: CAREGIVER × ENGINEER — Blending Human Compassion with Technological Innovation" [ref=e13]'
+    - generic [ref=e14]:
+      - link "journal/" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - link "tags/" [ref=e16] [cursor=pointer]:
+        - /url: /tags
+  - generic [ref=e18]:
+    - heading "404" [level=1] [ref=e19]
+    - heading "This page could not be found." [level=2] [ref=e21]
+  - contentinfo [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - img "介護士AIエンジニアYuki のプロフィールアイコン" [ref=e25]
+        - generic [ref=e26]:
+          - paragraph [ref=e27]: 介護士AIエンジニアYuki/
+          - paragraph [ref=e28]: 介護の現場で人と向き合った経験と、エンジニアとしてのものづくりを掛け合わせて活動しています。「CAREGIVER × ENGINEER」をテーマに、技術と人の温かさを橋渡しする試みや、日々の学びをこのブログに綴ります。
+          - list [ref=e29]:
+            - listitem [ref=e30]:
+              - link "X (Twitter)" [ref=e31] [cursor=pointer]:
+                - /url: https://x.com/yuki_engineer08
+                - img "X (Twitter)" [ref=e32]
+            - listitem [ref=e33]:
+              - link "YouTube" [ref=e34] [cursor=pointer]:
+                - /url: https://www.youtube.com/@yuki_engineer08
+                - img "YouTube" [ref=e35]
+      - paragraph [ref=e36]: EOF
+  - alert [ref=e37]

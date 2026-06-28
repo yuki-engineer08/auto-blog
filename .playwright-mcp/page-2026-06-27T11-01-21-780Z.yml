@@ -1,0 +1,180 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "journal/ 記事一覧トップへ戻る" [ref=e3] [cursor=pointer]:
+      - /url: /
+      - 'img "journal のバナー画像: CAREGIVER × ENGINEER — Blending Human Compassion with Technological Innovation" [ref=e4]'
+    - generic [ref=e5]:
+      - link "journal/" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - link "tags/" [ref=e7] [cursor=pointer]:
+        - /url: /tags
+  - article [ref=e8]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - time [ref=e11]: 2026.06.27
+        - list [ref=e12]:
+          - listitem [ref=e13]:
+            - link "[aws]" [ref=e14] [cursor=pointer]:
+              - /url: /tags/aws
+          - listitem [ref=e15]:
+            - link "[ai]" [ref=e16] [cursor=pointer]:
+              - /url: /tags/ai
+      - heading "介護士がAWSでAI事故報告支援ツールを作った話" [level=1] [ref=e17]
+      - paragraph [ref=e18]: 介護現場の事故報告書作成を効率化するAIツールをAWS（CloudFront + S3 + API Gateway + Lambda + Claude Haiku）で構築した記録。現場を知る人間が技術を持てば、本当に役立つものが作れる。
+    - navigation "目次" [ref=e19]:
+      - paragraph [ref=e20]: // TABLE OF CONTENTS
+      - list [ref=e21]:
+        - listitem [ref=e22]:
+          - link "なぜ作ったか" [ref=e23] [cursor=pointer]:
+            - /url: "#なぜ作ったか"
+        - listitem [ref=e24]:
+          - link "何ができるか" [ref=e25] [cursor=pointer]:
+            - /url: "#何ができるか"
+        - listitem [ref=e26]:
+          - link "なぜAIに任せきりにしないか" [ref=e27] [cursor=pointer]:
+            - /url: "#なぜaiに任せきりにしないか"
+        - listitem [ref=e28]:
+          - link "現在の状態と今後" [ref=e29] [cursor=pointer]:
+            - /url: "#現在の状態と今後"
+        - listitem [ref=e30]:
+          - link "最後に" [ref=e31] [cursor=pointer]:
+            - /url: "#最後に"
+    - generic [ref=e32]:
+      - paragraph [ref=e33]: 事故報告書を書くのが、正直しんどかった。
+      - paragraph [ref=e34]: 利用者さんが転倒した。ヒヤリハットがあった。そのたびに、同じような文章を一から書く。
+      - paragraph [ref=e35]: 「発生日時」「発生場所」「経緯」「対応内容」「今後の対策」。
+      - paragraph [ref=e36]: 書く内容は毎回似ている。でも毎回ゼロから書く。忙しい業務の合間に、疲れた頭で言葉を絞り出す。
+      - paragraph [ref=e37]: しかも書き方は人によってバラバラだ。
+      - paragraph [ref=e38]: ベテランスタッフが書いた報告書と、新人スタッフが書いた報告書では、情報の粒度も表現も全然違う。後で読み返したとき、何が起きたのか分かりにくいこともある。
+      - paragraph [ref=e39]: 「これ、もう少しなんとかならないのか。」
+      - paragraph [ref=e40]: そう思い続けて数年が経った。
+      - separator [ref=e41]
+      - heading "なぜ作ったか" [level=2] [ref=e42]:
+        - link "なぜ作ったか" [ref=e43] [cursor=pointer]:
+          - /url: "#なぜ作ったか"
+      - paragraph [ref=e44]: 介護現場には、繰り返し発生する記録業務がある。
+      - paragraph [ref=e45]: 事故報告書もその一つだ。毎回ゼロから書くため時間がかかる。さらに書く人によって品質にばらつきがあり、夜勤明けや忙しい時間帯には抜け漏れも起きやすい。こうした課題を、AIで解決できないかと考えた。
+      - paragraph [ref=e46]: 以前、介護学会でAIを活用した業務効率化について発表した経験がある。そのとき感じたのは、「AIは研究だけのものではなく、現場でも十分使える」ということだった。
+      - paragraph [ref=e47]: ただ、既存のツールを使うだけでは限界がある。現場のフローに合わせてカスタマイズするには、自分で作るしかない。
+      - paragraph [ref=e48]: AWSの勉強を終えた後、最初に作り始めたのがこのツールだった。
+      - separator [ref=e49]
+      - heading "何ができるか" [level=2] [ref=e50]:
+        - link "何ができるか" [ref=e51] [cursor=pointer]:
+          - /url: "#何ができるか"
+      - paragraph [ref=e52]: ツールの使い方はシンプルだ。
+      - list [ref=e53]:
+        - listitem [ref=e54]: 事故の概要を入力する（いつ、どこで、何が起きたか）
+        - listitem [ref=e55]: 送信ボタンを押す
+        - listitem [ref=e56]: AIが報告書のドラフトを生成する
+      - paragraph [ref=e57]: 生成されるドラフトには、発生状況・対応内容・今後の対策が含まれる。スタッフはそれを確認・修正して、最終的な報告書として提出する。
+      - paragraph [ref=e58]: 百聞は一見にしかず。実際の動作を動画で確認してほしい。
+      - iframe [ref=e60]:
+        - generic [active] [ref=f1e1]:
+          - generic "YouTube 動画プレーヤー" [ref=f1e3]
+          - generic [ref=f1e4]:
+            - generic:
+              - generic:
+                - button "動画を再生" [ref=f1e9] [cursor=pointer]
+                - button "プレーヤー コントロールを非表示にする" [ref=f1e11] [cursor=pointer]
+                - generic [ref=f1e13]:
+                  - generic [ref=f1e18]:
+                    - generic [ref=f1e19]:
+                      - link "介護で使える事故報告書自動生成チャットボット作ってみた" [ref=f1e20] [cursor=pointer]:
+                        - /url: https://www.youtube.com/watch?v=RsQK21tP38E
+                      - link "介護士AIエンジニアYuki" [ref=f1e21] [cursor=pointer]:
+                        - /url: /channel/UCJiW4D9pwHDfyyGxnYhBTzQ
+                        - generic [ref=f1e22]: 介護士AIエンジニアYuki
+                    - generic [ref=f1e23]:
+                      - button [ref=f1e24] [cursor=pointer]
+                      - generic [ref=f1e26]:
+                        - generic: 介護士AIエンジニアYuki
+                        - generic: チャンネル登録者なし
+                  - generic [ref=f1e27]:
+                    - button "共有" [ref=f1e30] [cursor=pointer]:
+                      - generic [ref=f1e34]:
+                        - img
+                    - link "YouTube で見る" [ref=f1e41] [cursor=pointer]:
+                      - /url: https://www.youtube.com/watch?v=RsQK21tP38E
+                      - generic [ref=f1e44]:
+                        - text: 見る
+                        - img [ref=f1e46]:
+                          - generic [ref=f1e48]:
+                            - img
+      - paragraph [ref=e61]: ポイントは、AIが「完成した報告書」を出すのではなく、「ドラフト」を出すことだ。
+      - paragraph [ref=e62]: 最終的な判断と責任は、あくまでスタッフが持つ。AIはその作業を助ける存在として設計している。
+      - separator [ref=e63]
+      - heading "なぜAIに任せきりにしないか" [level=2] [ref=e64]:
+        - link "なぜAIに任せきりにしないか" [ref=e65] [cursor=pointer]:
+          - /url: "#なぜaiに任せきりにしないか"
+      - paragraph [ref=e66]: 介護の記録には、法的な意味合いもある。
+      - paragraph [ref=e67]: 事故報告書は、施設の対応を証明する書類でもある。内容が不正確だったり、事実と異なったりすれば、それは大きな問題になる。
+      - paragraph [ref=e68]: だからこそ、AIが出したドラフトをそのまま提出する設計にはしていない。
+      - paragraph [ref=e69]: スタッフが内容を確認し、必要であれば修正する。AIはあくまで「たたき台」を作る役割だ。
+      - paragraph [ref=e70]: これは介護現場の感覚に近い。
+      - paragraph [ref=e71]: ケアプランはケアマネが作るが、現場のスタッフが確認して実施する。記録もAIが下書きを作るが、スタッフが確認して提出する。役割分担の話だ。
+      - separator [ref=e72]
+      - heading "現在の状態と今後" [level=2] [ref=e73]:
+        - link "現在の状態と今後" [ref=e74] [cursor=pointer]:
+          - /url: "#現在の状態と今後"
+      - paragraph [ref=e75]: 現在は施設内運用を想定した認証をかけており、外部からの一般公開はしていない。
+      - paragraph [ref=e76]: 使用しているAIはClaude Haiku（Anthropic）。コストを抑えながら、事故報告書の生成に十分な精度が出ることを確認している。インフラはAWS上に構築しており、構成はこうなっている。
+      - document [ref=e78]:
+        - generic [ref=e80]:
+          - generic [ref=e84]:
+            - paragraph [ref=e90]: 静的ファイル
+            - paragraph [ref=e96]: APIリクエスト
+            - paragraph [ref=e102]: ドラフト生成
+          - generic [ref=e103]:
+            - paragraph [ref=e110]: ブラウザ
+            - paragraph [ref=e117]: CloudFront
+            - paragraph [ref=e124]:
+              - text: S3
+              - text: フロントエンド
+            - paragraph [ref=e131]: API Gateway
+            - paragraph [ref=e138]:
+              - text: Lambda
+              - text: バックエンド処理
+            - paragraph [ref=e145]:
+              - text: Claude Haiku
+              - text: Anthropic
+      - paragraph [ref=e146]: 今後は、より多くの施設で使えるよう改善を続けていく予定だ。
+      - paragraph [ref=e147]: もし介護・福祉業界でこのツールに興味を持った方がいれば、ぜひ連絡をいただきたい。
+      - separator [ref=e148]
+      - heading "最後に" [level=2] [ref=e149]:
+        - link "最後に" [ref=e150] [cursor=pointer]:
+          - /url: "#最後に"
+      - paragraph [ref=e151]: 介護士としての経験が、このツールを作る原動力になった。
+      - paragraph [ref=e152]: 現場で感じた「これ、なんとかならないのか」という感覚。その感覚がなければ、このツールは生まれなかった。
+      - paragraph [ref=e153]: AWSを学んだから作れたのではない。
+      - paragraph [ref=e154]: 介護士として現場を知っていたから、「何を作れば役に立つか」が分かった。その上でAWSやAIという技術を身につけたことで、実際に動く形へ落とし込めた。
+      - paragraph [ref=e155]: 現場を知る人が技術を持てば、現場に本当に必要なものを作れる。
+      - paragraph [ref=e156]: 私はその可能性を、これからも形にしていきたい。
+    - button "ページ先頭に戻る" [ref=e158]:
+      - generic [ref=e159]: ↑
+      - text: ページ先頭に戻る
+    - navigation "前後の記事" [ref=e160]:
+      - link "← 前の記事 Next.js静的サイトをS3 + CloudFrontで公開したら403になった話（CloudFront Functionで解決） 2026.06.26" [ref=e162] [cursor=pointer]:
+        - /url: /blog/2026-06-26-cloudfront-403-url-rewrite
+        - paragraph [ref=e163]: ← 前の記事
+        - paragraph [ref=e164]: Next.js静的サイトをS3 + CloudFrontで公開したら403になった話（CloudFront Functionで解決）
+        - time [ref=e165]: 2026.06.26
+  - contentinfo [ref=e167]:
+    - generic [ref=e168]:
+      - generic [ref=e169]:
+        - img "介護士AIエンジニアYuki のプロフィールアイコン" [ref=e170]
+        - generic [ref=e171]:
+          - paragraph [ref=e172]: 介護士AIエンジニアYuki/
+          - paragraph [ref=e173]: 介護の現場で人と向き合った経験と、エンジニアとしてのものづくりを掛け合わせて活動しています。「CAREGIVER × ENGINEER」をテーマに、技術と人の温かさを橋渡しする試みや、日々の学びをこのブログに綴ります。
+          - list [ref=e174]:
+            - listitem [ref=e175]:
+              - link "X (Twitter)" [ref=e176] [cursor=pointer]:
+                - /url: https://x.com/yuki_engineer08
+                - img "X (Twitter)" [ref=e177]
+            - listitem [ref=e178]:
+              - link "YouTube" [ref=e179] [cursor=pointer]:
+                - /url: https://www.youtube.com/@yuki_engineer08
+                - img "YouTube" [ref=e180]
+      - paragraph [ref=e181]: EOF
+  - button "Open Next.js Dev Tools" [ref=e187] [cursor=pointer]:
+    - img [ref=e188]
+  - alert [ref=e191]

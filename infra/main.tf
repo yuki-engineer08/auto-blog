@@ -115,3 +115,18 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
   role   = aws_iam_role.github_actions_deploy.id
   policy = data.aws_iam_policy_document.github_actions_deploy.json
 }
+
+# ---------------------------------------------------------------------------
+# CloudFront Function: クリーンURL書き換え（viewer-request）
+#
+# コード本体は cloudfront-url-rewrite.js を参照。CloudFrontディストリビューション
+# 自体はこのTerraformの管理外（既存・手動作成済み）のため、DefaultCacheBehavior
+# への関連付けはAWS CLI/コンソールで別途行う必要がある。
+# ---------------------------------------------------------------------------
+resource "aws_cloudfront_function" "url_rewrite" {
+  name    = "blog-clean-url-rewrite"
+  runtime = "cloudfront-js-2.0"
+  comment = "クリーンURL(拡張子なしパス)をS3上の.htmlオブジェクトに解決する"
+  publish = true
+  code    = file("${path.module}/cloudfront-url-rewrite.js")
+}

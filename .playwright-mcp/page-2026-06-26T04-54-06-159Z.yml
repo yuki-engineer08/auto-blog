@@ -1,0 +1,419 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "journal/ 記事一覧トップへ戻る" [ref=e3] [cursor=pointer]:
+      - /url: /
+      - 'img "journal のバナー画像: CAREGIVER × ENGINEER — Blending Human Compassion with Technological Innovation" [ref=e4]'
+    - generic [ref=e5]:
+      - link "journal/" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - link "tags/" [ref=e7] [cursor=pointer]:
+        - /url: /tags
+  - article [ref=e8]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - time [ref=e11]: 2026.06.25
+        - list [ref=e12]:
+          - listitem [ref=e13]:
+            - link "[aws]" [ref=e14] [cursor=pointer]:
+              - /url: /tags/aws
+          - listitem [ref=e15]:
+            - link "[terraform]" [ref=e16] [cursor=pointer]:
+              - /url: /tags/terraform
+          - listitem [ref=e17]:
+            - link "[ci-cd]" [ref=e18] [cursor=pointer]:
+              - /url: /tags/ci-cd
+      - heading "介護士がTerraform + GitHub Actions + OIDCでブログのCI/CDを構築した話" [level=1] [ref=e19]
+      - paragraph [ref=e20]: Next.jsの静的ブログをS3 + CloudFrontにデプロイするCI/CDパイプラインを、Terraform + GitHub Actions OIDCで構築した記録。介護士がインフラを組んだ、詰まったところも含めて残す。
+    - navigation "目次" [ref=e21]:
+      - paragraph [ref=e22]: // TABLE OF CONTENTS
+      - list [ref=e23]:
+        - listitem [ref=e24]:
+          - link "全体構成" [ref=e25] [cursor=pointer]:
+            - /url: "#全体構成"
+        - listitem [ref=e26]:
+          - link "Terraformで管理したリソース" [ref=e27] [cursor=pointer]:
+            - /url: "#terraformで管理したリソース"
+          - list [ref=e28]:
+            - listitem [ref=e29]:
+              - link "S3バケット" [ref=e30] [cursor=pointer]:
+                - /url: "#s3バケット"
+            - listitem [ref=e31]:
+              - link "CloudFront Distribution" [ref=e32] [cursor=pointer]:
+                - /url: "#cloudfront-distribution"
+            - listitem [ref=e33]:
+              - link "CloudFront Function" [ref=e34] [cursor=pointer]:
+                - /url: "#cloudfront-function"
+            - listitem [ref=e35]:
+              - link "GitHub Actions用OIDCプロバイダーとIAMロール" [ref=e36] [cursor=pointer]:
+                - /url: "#github-actions用oidcプロバイダーとiamロール"
+        - listitem [ref=e37]:
+          - link "GitHub Actionsのワークフロー" [ref=e38] [cursor=pointer]:
+            - /url: "#github-actionsのワークフロー"
+        - listitem [ref=e39]:
+          - link "詰まったところ" [ref=e40] [cursor=pointer]:
+            - /url: "#詰まったところ"
+          - list [ref=e41]:
+            - listitem [ref=e42]:
+              - link "OIDCのパーミッション設定漏れ" [ref=e43] [cursor=pointer]:
+                - /url: "#oidcのパーミッション設定漏れ"
+            - listitem [ref=e44]:
+              - link "CloudFront Functionが有効化されていなかった問題" [ref=e45] [cursor=pointer]:
+                - /url: "#cloudfront-functionが有効化されていなかった問題"
+        - listitem [ref=e46]:
+          - link "やってみて分かったこと" [ref=e47] [cursor=pointer]:
+            - /url: "#やってみて分かったこと"
+    - generic [ref=e48]:
+      - paragraph [ref=e49]:
+        - code [ref=e50]: "`git push`"
+        - text: したら、本番に反映される。
+      - paragraph [ref=e51]: それだけのことを実現するために、かなりの時間を使った。
+      - paragraph [ref=e52]: この記事では、Next.jsの静的ブログをS3 + CloudFrontにデプロイするCI/CDパイプラインをTerraform + GitHub Actions OIDCで構築した話を書く。
+      - paragraph [ref=e53]: 介護士がインフラを組んだ記録として、詰まったところも含めて残しておく。
+      - paragraph [ref=e54]:
+        - img "CI/CDパイプラインのイメージイラスト" [ref=e55]
+      - separator [ref=e56]
+      - heading "全体構成" [level=2] [ref=e57]:
+        - link "全体構成" [ref=e58] [cursor=pointer]:
+          - /url: "#全体構成"
+      - paragraph [ref=e59]: まず完成形の構成を示す。
+      - paragraph [ref=e60]: TerraformがAWSリソース全体を管理し、GitHub Actionsがビルドとデプロイを自動化する。
+      - separator [ref=e61]
+      - heading "Terraformで管理したリソース" [level=2] [ref=e62]:
+        - link "Terraformで管理したリソース" [ref=e63] [cursor=pointer]:
+          - /url: "#terraformで管理したリソース"
+      - heading "S3バケット" [level=3] [ref=e64]:
+        - link "S3バケット" [ref=e65] [cursor=pointer]:
+          - /url: "#s3バケット"
+      - paragraph [ref=e66]: 静的ファイルの置き場。CloudFrontからのみアクセスを許可し、パブリックアクセスはすべてブロックする。
+      - figure [ref=e67]:
+        - generic [ref=e68]:
+          - text: hcl
+          - code [ref=e69]:
+            - generic [ref=e70]: "resource \"aws_s3_bucket\" \"blog\" {"
+            - generic [ref=e71]: bucket = var.bucket_name
+            - generic [ref=e72]: "}"
+            - generic [ref=e74]: "resource \"aws_s3_bucket_public_access_block\" \"blog\" {"
+            - generic [ref=e75]: bucket = aws_s3_bucket.blog.id
+            - generic [ref=e77]: block_public_acls = true
+            - generic [ref=e78]: block_public_policy = true
+            - generic [ref=e79]: ignore_public_acls = true
+            - generic [ref=e80]: restrict_public_buckets = true
+            - generic [ref=e81]: "}"
+            - generic [ref=e83]: "resource \"aws_s3_bucket_policy\" \"blog\" {"
+            - generic [ref=e84]: bucket = aws_s3_bucket.blog.id
+            - generic [ref=e85]: "policy = jsonencode({"
+            - generic [ref=e86]: Version = "2012-10-17"
+            - generic [ref=e87]: Statement = [
+            - generic [ref=e88]: "{"
+            - generic [ref=e89]: Sid = "AllowCloudFrontAccess"
+            - generic [ref=e90]: Effect = "Allow"
+            - generic [ref=e91]: "Principal = {"
+            - generic [ref=e92]: Service = "cloudfront.amazonaws.com"
+            - generic [ref=e93]: "}"
+            - generic [ref=e94]: Action = "s3:GetObject"
+            - generic [ref=e95]: "Resource = \"${aws_s3_bucket.blog.arn}/*\""
+            - generic [ref=e96]: "Condition = {"
+            - generic [ref=e97]: "StringEquals = {"
+            - generic [ref=e98]: "\"AWS:SourceArn\" = aws_cloudfront_distribution.blog.arn"
+            - generic [ref=e99]: "}"
+            - generic [ref=e100]: "}"
+            - generic [ref=e101]: "}"
+            - generic [ref=e102]: "]"
+            - generic [ref=e103]: "})"
+            - generic [ref=e104]: "}"
+      - heading "CloudFront Distribution" [level=3] [ref=e105]:
+        - link "CloudFront Distribution" [ref=e106] [cursor=pointer]:
+          - /url: "#cloudfront-distribution"
+      - paragraph [ref=e107]: S3の前段に置いてキャッシュと高速配信を担う。OAC（Origin Access Control）でS3との接続を制御する。
+      - figure [ref=e108]:
+        - generic [ref=e109]:
+          - text: hcl
+          - code [ref=e110]:
+            - generic [ref=e111]: "resource \"aws_cloudfront_origin_access_control\" \"blog\" {"
+            - generic [ref=e112]: name = "blog-oac"
+            - generic [ref=e113]: origin_access_control_origin_type = "s3"
+            - generic [ref=e114]: signing_behavior = "always"
+            - generic [ref=e115]: signing_protocol = "sigv4"
+            - generic [ref=e116]: "}"
+            - generic [ref=e118]: "resource \"aws_cloudfront_distribution\" \"blog\" {"
+            - generic [ref=e119]: "origin {"
+            - generic [ref=e120]: domain_name = aws_s3_bucket.blog.bucket_regional_domain_name
+            - generic [ref=e121]: origin_id = "S3Origin"
+            - generic [ref=e122]: origin_access_control_id = aws_cloudfront_origin_access_control.blog.id
+            - generic [ref=e123]: "}"
+            - generic [ref=e125]: enabled = true
+            - generic [ref=e126]: default_root_object = "index.html"
+            - generic [ref=e128]: "default_cache_behavior {"
+            - generic [ref=e129]: target_origin_id = "S3Origin"
+            - generic [ref=e130]: viewer_protocol_policy = "redirect-to-https"
+            - generic [ref=e131]: allowed_methods = ["GET", "HEAD"]
+            - generic [ref=e132]: cached_methods = ["GET", "HEAD"]
+            - generic [ref=e134]: "function_association {"
+            - generic [ref=e135]: event_type = "viewer-request"
+            - generic [ref=e136]: function_arn = aws_cloudfront_function.url_rewrite.arn
+            - generic [ref=e137]: "}"
+            - generic [ref=e139]: "forwarded_values {"
+            - generic [ref=e140]: query_string = false
+            - generic [ref=e141]: "cookies {"
+            - generic [ref=e142]: forward = "none"
+            - generic [ref=e143]: "}"
+            - generic [ref=e144]: "}"
+            - generic [ref=e145]: "}"
+            - generic [ref=e147]: "restrictions {"
+            - generic [ref=e148]: "geo_restriction {"
+            - generic [ref=e149]: restriction_type = "none"
+            - generic [ref=e150]: "}"
+            - generic [ref=e151]: "}"
+            - generic [ref=e153]: "viewer_certificate {"
+            - generic [ref=e154]: cloudfront_default_certificate = true
+            - generic [ref=e155]: "}"
+            - generic [ref=e156]: "}"
+      - heading "CloudFront Function" [level=3] [ref=e157]:
+        - link "CloudFront Function" [ref=e158] [cursor=pointer]:
+          - /url: "#cloudfront-function"
+      - paragraph [ref=e159]:
+        - text: ここが一番ハマったポイントだ。後述するが、
+        - strong [ref=e160]: ファイルを作るだけでは動かない。
+      - paragraph [ref=e161]:
+        - text: Next.jsの静的エクスポートでは、
+        - code [ref=e162]: "`/posts/hello`"
+        - text: というURLは
+        - code [ref=e163]: "`/posts/hello.html`"
+        - text: または
+        - code [ref=e164]: "`/posts/hello/index.html`"
+        - text: として出力される。CloudFrontはデフォルトでこのマッピングを自動解決しないため、URLを書き換えるFunctionが必要になる。
+      - figure [ref=e165]:
+        - generic [ref=e166]:
+          - text: hcl
+          - code [ref=e167]:
+            - generic [ref=e168]: "resource \"aws_cloudfront_function\" \"url_rewrite\" {"
+            - generic [ref=e169]: name = "url-rewrite"
+            - generic [ref=e170]: runtime = "cloudfront-js-2.0"
+            - generic [ref=e171]: publish = true
+            - generic [ref=e172]: "code = file(\"${path.module}/functions/url-rewrite.js\")"
+            - generic [ref=e173]: "}"
+      - figure [ref=e174]:
+        - generic [ref=e175]:
+          - text: javascript
+          - code [ref=e176]:
+            - generic [ref=e177]: // functions/url-rewrite.js
+            - generic [ref=e178]: "async function handler(event) {"
+            - generic [ref=e179]: const request = event.request;
+            - generic [ref=e180]: const uri = request.uri;
+            - generic [ref=e182]: // 拡張子がある場合はそのまま
+            - generic [ref=e183]: "if (uri.match(/\\.[a-zA-Z0-9]+$/)) {"
+            - generic [ref=e184]: return request;
+            - generic [ref=e185]: "}"
+            - generic [ref=e187]: // トレイリングスラッシュがある場合はindex.htmlを追加
+            - generic [ref=e188]: "if (uri.endsWith('/')) {"
+            - generic [ref=e189]: request.uri += 'index.html';
+            - generic [ref=e190]: return request;
+            - generic [ref=e191]: "}"
+            - generic [ref=e193]: // それ以外は/index.htmlを追加
+            - generic [ref=e194]: request.uri += '/index.html';
+            - generic [ref=e195]: return request;
+            - generic [ref=e196]: "}"
+      - heading "GitHub Actions用OIDCプロバイダーとIAMロール" [level=3] [ref=e197]:
+        - link "GitHub Actions用OIDCプロバイダーとIAMロール" [ref=e198] [cursor=pointer]:
+          - /url: "#github-actions用oidcプロバイダーとiamロール"
+      - paragraph [ref=e199]: アクセスキーを使わずにGitHub ActionsからAWSを操作するための設定。
+      - figure [ref=e200]:
+        - generic [ref=e201]:
+          - text: hcl
+          - code [ref=e202]:
+            - generic [ref=e203]: "resource \"aws_iam_openid_connect_provider\" \"github\" {"
+            - generic [ref=e204]: url = "https://token.actions.githubusercontent.com"
+            - generic [ref=e206]: client_id_list = ["sts.amazonaws.com"]
+            - generic [ref=e208]: thumbprint_list = [
+            - generic [ref=e209]: "\"6938fd4d98bab03faadb97b34396831e3780aea1\""
+            - generic [ref=e210]: "]"
+            - generic [ref=e211]: "}"
+            - generic [ref=e213]: "resource \"aws_iam_role\" \"github_actions\" {"
+            - generic [ref=e214]: name = "github-actions-blog-deploy"
+            - generic [ref=e216]: "assume_role_policy = jsonencode({"
+            - generic [ref=e217]: Version = "2012-10-17"
+            - generic [ref=e218]: Statement = [
+            - generic [ref=e219]: "{"
+            - generic [ref=e220]: Effect = "Allow"
+            - generic [ref=e221]: "Principal = {"
+            - generic [ref=e222]: Federated = aws_iam_openid_connect_provider.github.arn
+            - generic [ref=e223]: "}"
+            - generic [ref=e224]: Action = "sts:AssumeRoleWithWebIdentity"
+            - generic [ref=e225]: "Condition = {"
+            - generic [ref=e226]: "StringLike = {"
+            - generic [ref=e227]: "\"token.actions.githubusercontent.com:sub\" = \"repo:${var.github_repo}:ref:refs/heads/main\""
+            - generic [ref=e228]: "}"
+            - generic [ref=e229]: "StringEquals = {"
+            - generic [ref=e230]: "\"token.actions.githubusercontent.com:aud\" = \"sts.amazonaws.com\""
+            - generic [ref=e231]: "}"
+            - generic [ref=e232]: "}"
+            - generic [ref=e233]: "}"
+            - generic [ref=e234]: "]"
+            - generic [ref=e235]: "})"
+            - generic [ref=e236]: "}"
+            - generic [ref=e238]: "resource \"aws_iam_role_policy\" \"github_actions\" {"
+            - generic [ref=e239]: name = "blog-deploy-policy"
+            - generic [ref=e240]: role = aws_iam_role.github_actions.id
+            - generic [ref=e242]: "policy = jsonencode({"
+            - generic [ref=e243]: Version = "2012-10-17"
+            - generic [ref=e244]: Statement = [
+            - generic [ref=e245]: "{"
+            - generic [ref=e246]: Effect = "Allow"
+            - generic [ref=e247]: Action = [
+            - generic [ref=e248]: "\"s3:PutObject\","
+            - generic [ref=e249]: "\"s3:DeleteObject\","
+            - generic [ref=e250]: "\"s3:ListBucket\""
+            - generic [ref=e251]: "]"
+            - generic [ref=e252]: Resource = [
+            - generic [ref=e253]: aws_s3_bucket.blog.arn,
+            - generic [ref=e254]: "\"${aws_s3_bucket.blog.arn}/*\""
+            - generic [ref=e255]: "]"
+            - generic [ref=e256]: "},"
+            - generic [ref=e257]: "{"
+            - generic [ref=e258]: Effect = "Allow"
+            - generic [ref=e259]: Action = "cloudfront:CreateInvalidation"
+            - generic [ref=e260]: Resource = aws_cloudfront_distribution.blog.arn
+            - generic [ref=e261]: "}"
+            - generic [ref=e262]: "]"
+            - generic [ref=e263]: "})"
+            - generic [ref=e264]: "}"
+      - separator [ref=e265]
+      - heading "GitHub Actionsのワークフロー" [level=2] [ref=e266]:
+        - link "GitHub Actionsのワークフロー" [ref=e267] [cursor=pointer]:
+          - /url: "#github-actionsのワークフロー"
+      - paragraph [ref=e268]: mainブランチへのpushをトリガーに、ビルドとデプロイを自動実行する。
+      - figure [ref=e269]:
+        - generic [ref=e270]:
+          - text: yaml
+          - code [ref=e271]:
+            - generic [ref=e272]: "# .github/workflows/deploy.yml"
+            - generic [ref=e273]: "name: Deploy Blog"
+            - generic [ref=e275]: "on:"
+            - generic [ref=e276]: "push:"
+            - generic [ref=e277]: "branches:"
+            - generic [ref=e278]: "- main"
+            - generic [ref=e280]: "permissions:"
+            - generic [ref=e281]: "id-token: write"
+            - generic [ref=e282]: "contents: read"
+            - generic [ref=e284]: "jobs:"
+            - generic [ref=e285]: "deploy:"
+            - generic [ref=e286]: "runs-on: ubuntu-latest"
+            - generic [ref=e288]: "steps:"
+            - generic [ref=e289]: "- uses: actions/checkout@v4"
+            - generic [ref=e291]: "- uses: actions/setup-node@v4"
+            - generic [ref=e292]: "with:"
+            - generic [ref=e293]: "node-version: '20'"
+            - generic [ref=e294]: "cache: 'npm'"
+            - generic [ref=e296]: "- name: Install dependencies"
+            - generic [ref=e297]: "run: npm ci"
+            - generic [ref=e299]: "- name: Build"
+            - generic [ref=e300]: "run: npm run build"
+            - generic [ref=e302]: "- name: Configure AWS credentials"
+            - generic [ref=e303]: "uses: aws-actions/configure-aws-credentials@v4"
+            - generic [ref=e304]: "with:"
+            - generic [ref=e305]: "role-to-assume: ${{ secrets.AWS_ROLE_ARN }}"
+            - generic [ref=e306]: "aws-region: ap-northeast-1"
+            - generic [ref=e308]: "- name: Sync to S3"
+            - generic [ref=e309]: "run: |"
+            - generic [ref=e310]: "aws s3 sync ./out s3://${{ secrets.S3_BUCKET_NAME }} \\"
+            - generic [ref=e311]: "--delete \\"
+            - generic [ref=e312]: "--cache-control \"public, max-age=31536000, immutable\""
+            - generic [ref=e314]: "- name: Invalidate CloudFront cache"
+            - generic [ref=e315]: "run: |"
+            - generic [ref=e316]: aws cloudfront create-invalidation \
+            - generic [ref=e317]: "--distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \\"
+            - generic [ref=e318]: "--paths \"/*\""
+      - paragraph [ref=e319]: OIDCを使うポイントは2つ。
+      - list [ref=e320]:
+        - listitem [ref=e321]:
+          - code [ref=e322]: "`permissions`"
+          - text: に
+          - code [ref=e323]: "`id-token: write`"
+          - text: を必ず追加する
+        - listitem [ref=e324]:
+          - code [ref=e325]: "`configure-aws-credentials`"
+          - text: で
+          - code [ref=e326]: "`role-to-assume`"
+          - text: を指定する
+      - paragraph [ref=e327]: この2つが揃わないと認証に失敗する。最初はここで詰まった。
+      - separator [ref=e328]
+      - heading "詰まったところ" [level=2] [ref=e329]:
+        - link "詰まったところ" [ref=e330] [cursor=pointer]:
+          - /url: "#詰まったところ"
+      - heading "OIDCのパーミッション設定漏れ" [level=3] [ref=e331]:
+        - link "OIDCのパーミッション設定漏れ" [ref=e332] [cursor=pointer]:
+          - /url: "#oidcのパーミッション設定漏れ"
+      - paragraph [ref=e333]:
+        - text: 最初、
+        - code [ref=e334]: "`permissions`"
+        - text: ブロックを書いていなかった。
+      - paragraph [ref=e335]:
+        - text: エラーメッセージは
+        - code [ref=e336]: "`Error: Credentials could not be loaded`"
+        - text: 。最初は原因が分からなかったが、
+        - code [ref=e337]: "`id-token: write`"
+        - text: がないとGitHub ActionsがOIDCトークンを発行できないことが分かった。
+      - heading "CloudFront Functionが有効化されていなかった問題" [level=3] [ref=e338]:
+        - link "CloudFront Functionが有効化されていなかった問題" [ref=e339] [cursor=pointer]:
+          - /url: "#cloudfront-functionが有効化されていなかった問題"
+      - paragraph [ref=e340]: これが一番時間を使った。
+      - paragraph [ref=e341]:
+        - code [ref=e342]: "`terraform apply`"
+        - text: したのに動かない。GitHub Actionsは成功しているのに個別記事だけ403になる。CloudFrontのキャッシュかと思って無効化しても直らない。S3のバケットポリシーを疑っても直らない。
+      - paragraph [ref=e343]:
+        - text: JSファイルは存在する。Terraformのコードにも
+        - code [ref=e344]: "`aws_cloudfront_function`"
+        - text: リソースは定義されている。
+      - paragraph [ref=e345]:
+        - text: でも、
+        - strong [ref=e346]: AWS上にFunctionが作成されていなかった。
+      - paragraph [ref=e347]:
+        - text: Terraformのコード上では定義していたつもりだったが、実際には
+        - code [ref=e348]: "`terraform apply`"
+        - text: が正しく実行されておらず、AWS上にFunctionが存在しない状態だった。当然DistributionへのAssociationも行われていない。だからリクエストがFunctionを通らず、URLの書き換えが発生しないまま403を返し続けていた。
+      - paragraph [ref=e349]:
+        - code [ref=e350]: "`terraform plan`"
+        - text: で改めて確認すると、Functionが
+        - code [ref=e351]: "`create`"
+        - text: されていないことが分かった。
+        - code [ref=e352]: "`terraform apply`"
+        - text: を正しく実行し直してFunctionを作成、Distributionに関連付けることで解消した。
+      - paragraph [ref=e353]:
+        - text: 修正は
+        - code [ref=e354]: "`function_association`"
+        - text: ブロックを正しく書き直すだけだった。でも原因特定に半日かかった。この話は次の記事で詳しく書く。
+      - paragraph [ref=e355]: なお、この構成は記事③で紹介したClaude CodeのPlanner・Generator・Evaluatorチームと一緒に構築した。私自身は要件整理・レビュー・検証・トラブルシューティングを担当した。CloudFront Functionの問題のように「何が起きているか分からない」局面では、EvaluatorにTerraformの差分を読ませて原因を絞り込んだ。全部を自分で理解しながら進めたわけではないが、実際に動く環境を作り、エラーを解消し、本番公開までたどり着いた経験は大きな学びになった。
+      - separator [ref=e356]
+      - heading "やってみて分かったこと" [level=2] [ref=e357]:
+        - link "やってみて分かったこと" [ref=e358] [cursor=pointer]:
+          - /url: "#やってみて分かったこと"
+      - paragraph [ref=e359]: TerraformとGitHub Actionsを組み合わせると、インフラの状態がコードで管理できる。
+      - paragraph [ref=e360]: 「なんとなく動いている」状態から、「なぜ動いているか分かる」状態になった。
+      - paragraph [ref=e361]: それは介護記録に似ていると思った。口頭で申し送りをするより、記録に残す方が、あとで読んだ人が状態を理解できる。インフラもコードに残すことで、未来の自分が読み返せる。
+      - paragraph [ref=e362]: CloudFrontの403エラーで半日溶かした話は、次の記事に書く。
+    - button "ページ先頭に戻る" [ref=e364]:
+      - generic [ref=e365]: ↑
+      - text: ページ先頭に戻る
+    - navigation "前後の記事" [ref=e366]:
+      - link "← 前の記事 介護士がClaude CodeでAI開発チームを作った話 2026.06.24" [ref=e368] [cursor=pointer]:
+        - /url: /blog/2026-06-24-caregiver-built-ai-team-with-claude-code
+        - paragraph [ref=e369]: ← 前の記事
+        - paragraph [ref=e370]: 介護士がClaude CodeでAI開発チームを作った話
+        - time [ref=e371]: 2026.06.24
+  - contentinfo [ref=e373]:
+    - generic [ref=e374]:
+      - generic [ref=e375]:
+        - img "介護士AIエンジニアYuki のプロフィールアイコン" [ref=e376]
+        - generic [ref=e377]:
+          - paragraph [ref=e378]: 介護士AIエンジニアYuki/
+          - paragraph [ref=e379]: 介護の現場で人と向き合った経験と、エンジニアとしてのものづくりを掛け合わせて活動しています。「CAREGIVER × ENGINEER」をテーマに、技術と人の温かさを橋渡しする試みや、日々の学びをこのブログに綴ります。
+          - list [ref=e380]:
+            - listitem [ref=e381]:
+              - link "X (Twitter)" [ref=e382] [cursor=pointer]:
+                - /url: https://x.com/yuki_engineer08
+                - img "X (Twitter)" [ref=e383]
+            - listitem [ref=e384]:
+              - link "YouTube" [ref=e385] [cursor=pointer]:
+                - /url: https://www.youtube.com/@yuki_engineer08
+                - img "YouTube" [ref=e386]
+      - paragraph [ref=e387]: EOF
