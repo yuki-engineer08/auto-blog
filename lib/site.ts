@@ -7,6 +7,9 @@
  *   - socialLinks.href : 各SNSアカウントの実URL（現状は your-handle のプレースホルダ）
  */
 
+/** Google Analytics 4 測定ID */
+export const ga4MeasurementId = "G-LDQ7JL615Z";
+
 /**
  * サイトの公開ベースURL（OGP画像等を絶対URLで出力するために使用）。
  * TODO(運営者): 実際のCloudFront公開ドメイン（またはカスタムドメイン）に差し替えること。

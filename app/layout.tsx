@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
 import { Zen_Kaku_Gothic_New, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-import { siteProfile, socialLinks, siteUrl } from "@/lib/site";
+import { siteProfile, socialLinks, siteUrl, ga4MeasurementId } from "@/lib/site";
 
 const zenKaku = Zen_Kaku_Gothic_New({
   variable: "--font-zen-kaku",
@@ -32,6 +33,13 @@ export default function RootLayout({
       lang="ja"
       className={`${zenKaku.variable} ${plexMono.variable} h-full antialiased`}
     >
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${ga4MeasurementId}`}
+        strategy="afterInteractive"
+      />
+      <Script id="ga4-init" strategy="afterInteractive">
+        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga4MeasurementId}');`}
+      </Script>
       <body className="flex min-h-full flex-col bg-paper text-ink">
         <header className="border-b border-line">
           <Link
