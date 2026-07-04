@@ -9,6 +9,7 @@
 - Markdown/MDXで記事を書くと、静的サイトとしてビルドされ、`main` ブランチへのpushで自動的に本番環境へ反映される個人ブログです。
 - 記事執筆だけでなく、サイト自体の機能追加（タグ機能、検索、ページネーション、Mermaid図対応など）もスプリント単位で継続的に開発しています。
 - インフラ（S3 / CloudFront）はTerraformでコード管理し、デプロイはGitHub Actions + OIDCで認証情報をリポジトリに置かずに実行しています。
+- `published: true` の記事をpushすると、QiitaとZennへも自動クロスポストされます。
 
 ## 技術スタック
 
@@ -19,7 +20,7 @@
 | 図表 | Mermaid（記事中のコードブロックから図を自動レンダリング） |
 | スタイリング | Tailwind CSS |
 | インフラ | Terraform（S3 + CloudFront） |
-| CI/CD | GitHub Actions（OIDC認証、静的アサイン不使用） |
+| CI/CD | GitHub Actions（OIDC認証、静的アサイン不使用 / Qiita・Zenn 自動クロスポスト） |
 | 言語 | TypeScript |
 
 ## 開発フロー：Planner / Generator / Evaluatorによるスプリント運用
@@ -41,7 +42,8 @@
 ├── content/blog/         # 記事本体。1記事1フォルダ（YYYY-MM-DD-slug/index.mdx）+ 同梱画像
 ├── lib/                  # 記事取得ロジック、site設定、remark/MDXプラグイン
 ├── infra/                # Terraform（S3 / CloudFront / CloudFront Function）
-├── .github/workflows/    # GitHub Actions（ビルド→S3同期→CloudFrontキャッシュ無効化）
+├── scripts/crosspost/    # Qiita・Zenn クロスポストスクリプト群
+├── .github/workflows/    # GitHub Actions（ビルド→S3同期 / Qiita・Zenn クロスポスト）
 ├── .claude/agents/       # Planner / Generator / Evaluator のエージェント定義
 ├── .claude/skills/       # 記事執筆など定型作業のスキル定義
 ├── velite.config.ts      # 記事フロントマターのZodスキーマ・ビルド設定
@@ -75,11 +77,44 @@ npm run lint     # ESLint
 
 インフラ自体（S3バケット、CloudFrontディストリビューション、URL書き換え用CloudFront Function）は `infra/` 配下のTerraformで管理しています。
 
+## 自動クロスポスト（Qiita・Zenn）
+
+`content/blog/**/*.mdx` を変更して `main` にpushすると、GitHub Actions が変更を検知し、`published: true` の記事を Qiita と Zenn に自動投稿（または更新）します。
+
+### 仕組み
+
+1. `git diff` で変更された `.mdx` ファイルを特定し、`published: true` の記事のみを対象にする
+2. MDX本文からMermaid・YouTubeEmbedなどのカスタムコンポーネントを除去し、プレーンMarkdownに変換する
+3. 画像パスは Velite のビルド成果物（`.velite/posts.json`）を参照して正確な `/static/xxx-hash.png` URLに変換する
+4. Qiita: REST API v2 で POST（初回）または PATCH（更新）。発行された `qiita_id` はフロントマターに書き戻してコミットされる（`[skip ci]` 付き）
+5. Zenn: Zenn連携リポジトリに `articles/{slug}.md` を push する
+
+### 必要なSecretsとVariables
+
+GitHub リポジトリの Settings → Secrets and variables → Actions で設定します。
+
+| 種別 | 名前 | 内容 |
+| --- | --- | --- |
+| Secret | `QIITA_ACCESS_TOKEN` | Qiitaのアクセストークン |
+| Secret | `ZENN_REPO_PAT` | Zenn連携リポジトリへの書き込み権限を持つ GitHub PAT（fine-grained: Contents Read & Write） |
+| Secret | `SITE_BASE_URL` | CloudFrontのURL（記事内画像の絶対パスに使用） |
+| Variable | `ZENN_REPO` | Zenn連携リポジトリ名（例: `owner/zenn-articles`） |
+
+### ドライラン
+
+APIを呼ばずに変換結果をプレビューできます。
+
+```bash
+npm run build          # Veliteビルドが必要（画像パス解決のため）
+npm run crosspost:dry-run               # HEAD~1..HEAD の差分で確認
+npm run crosspost:dry-run -- <before_sha> <after_sha>  # SHA指定
+```
+
 ## 記事の書き方
 
 1. `_TEMPLATE_1.mdx` をコピーし、`content/blog/YYYY-MM-DD-記事スラッグ/index.mdx` として配置する（画像も同じフォルダに同梱）。
 2. フロントマター（`title` / `description` / `date` / `tags` / `published`）を記入する。`published: false` の間は一覧・ビルドに出てこない下書き状態。
 3. 本文はMarkdown/MDX。画像は `![alt](./画像ファイル名.jpg)` で参照、コードブロックは通常のフェンス記法でシンタックスハイライトされる。
-4. 公開時に `published: true` にしてpushすると、CIが自動でビルド・デプロイする。
+4. 公開時に `published: true` にしてpushすると、CIが自動でビルド・デプロイする。QiitaとZennへのクロスポストも同時に行われる。
 
 Claude Codeから記事を作成・編集する場合は `blog-article` スキルを使うと、上記のルール（配置場所・フロントマター・画像の扱いなど）に沿って執筆を進められます。
