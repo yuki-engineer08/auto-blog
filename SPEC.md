@@ -405,5 +405,186 @@ Sprint 7で追加した記事サムネイルを、SNSシェア時のOGP画像と
 
 ---
 
-## 今後追加予定のスプリント（未定義）
-- SNS自動投稿（次フェーズ、本SPEC.mdの対象外）
+## Sprint 11: 記事diff検出 + MDX→Markdown変換の共通基盤
+
+### 概要
+クロスポスト（Sprint 12・13）の前提となる共通処理を実装する。mainへのpushで変更された記事を検出するdiff検出スクリプトと、MDX形式の記事をQiita/ZennのプレーンMarkdownへ変換するスクリプトを作る。どちらも後続SprintのGitHub Actionsワークフローから呼び出す形で提供する。UI・フロントエンドへの変更は一切行わない。
+
+### 前提・制約
+- 記事はMDX形式（Velite管理）であり、Mermaid図・YouTubeEmbed等の独自コンポーネントを含む可能性がある。QiitaおよびZennはプレーンMarkdownのみを受け付けるため、変換処理は必須。
+- 画像パスは記事フォルダへの相対パス（`./image.png`）で書かれているが、クロスポスト先は外部サービスのため、CloudFrontドメインを含む絶対URLへの変換が必要。
+- 変換スクリプトはTypeScript（Node.js）で実装し、`scripts/crosspost/` に配置する。Veliteのビルドパイプラインとは独立したスタンドアロンスクリプトとして扱う。
+
+### 機能要件（実装詳細）
+- mainブランチへのpushで「変更された記事」「新規追加された記事」を `content/blog/*/index.mdx` パターンで検出できる（削除・`published: false` の記事はクロスポスト対象外）
+- 変換後のMarkdownから、Veliteのfrontmatterブロック（`---`〜`---`）が除去されている
+- MDX独自コンポーネントタグ（`<ComponentName .../>` 形式）が変換時に除去される（コンテンツが失われる場合は空行に置換）
+- 記事内の画像パス（`./image.png` 等の相対パス）がCloudFront絶対URLへ変換される
+- Qiita向けとZenn向けで、それぞれ適切なfrontmatterを生成できる
+
+### frontmatterマッピング仕様
+
+**Qiita向け（API payloadとして使用）:**
+
+| 元フィールド | Qiita APIフィールド | 変換ルール |
+|---|---|---|
+| `title` | `title` | そのまま |
+| `tags` | `tags` | `[{ name: "タグ名" }]` 形式に変換 |
+| `published` | `private` | `!published`（公開=private:false） |
+
+**Zenn向け（Markdownファイル先頭に出力）:**
+
+| 元フィールド | Zennフィールド | 変換ルール |
+|---|---|---|
+| `title` | `title` | そのまま |
+| `tags` | `topics` | string[]形式（最大5件） |
+| `published` | `published` | そのまま |
+| （なし） | `emoji` | デフォルト値（→ 要決定事項） |
+| （なし） | `type` | デフォルト値（→ 要決定事項） |
+
+### 要決定事項
+- `SITE_BASE_URL`（画像絶対URL・転載リンク生成に使用するCloudFrontドメイン）: プレースホルダ `https://YOUR_CLOUDFRONT_DOMAIN`
+- Zenn frontmatterの `emoji` のデフォルト値（例: `"📝"`）
+- Zenn frontmatterの `type` のデフォルト値（例: `"tech"`）
+- MDXカスタムコンポーネントの変換方針（単純除去か、代替テキストを挿入するか）
+
+### タスク分解
+1. `scripts/crosspost/` ディレクトリを作成し、TypeScript実行環境（tsconfig・必要パッケージ）を整備する
+2. diff検出スクリプト（`detect-changes.ts`）を実装する（`git diff --name-only` で変更ファイルを取得し、`content/blog/*/index.mdx` パターンで絞り込む）
+3. MDX→Markdown変換スクリプト（`convert-mdx.ts`）を実装する（frontmatter除去・MDXコンポーネント除去・画像パス絶対URL変換）
+4. Qiita/Zenn向けfrontmatter生成関数を実装する（マッピング仕様に従い変換）
+5. サンプル記事を使って変換スクリプトをローカルで実行し、出力内容（コンポーネント除去・画像URL変換・frontmatterマッピング）を目視確認する
+
+### Definition of Done
+- [ ] `scripts/crosspost/` にTypeScriptスクリプトが配置され、ローカルで実行できる
+- [ ] diff検出スクリプトを実行すると、変更のある `content/blog/*/index.mdx` のパス一覧のみが出力される（変更していない記事は含まれない）
+- [ ] 独自MDXコンポーネント（`<YouTubeEmbed />` 等）を含む記事を変換スクリプトに通すと、コンポーネントタグが除去されたMarkdownが出力される
+- [ ] 変換後のMarkdownに `---` frontmatterブロックが含まれない（Veliteのfrontmatterが除去されている）
+- [ ] `![alt](./image.png)` 形式の画像パスが、CloudFrontドメインを含む絶対URLに変換されている
+- [ ] Qiita向けfrontmatter生成で `tags: ["TypeScript"]` が `[{ name: "TypeScript" }]` 形式に変換されている
+- [ ] Zenn向けfrontmatter生成で `emoji`, `type`, `topics`, `published` が含まれている
+- [ ] `npm run build` が正常に完了する（スクリプト追加による影響がないこと）
+
+---
+
+## Sprint 12: Qiita自動投稿（POST/PATCH・ID書き戻し・転載リンク付与）
+
+### 概要
+Sprint 11の変換基盤を使い、Qiita API v2を呼び出すGitHub Actionsジョブを追加する。記事の初回投稿はPOST、以後の変更は同記事のPATCH（更新）として扱う。投稿後のQiita記事IDをMDXのfrontmatterに書き戻し、次回以降の更新を冪等に処理できるようにする。
+
+### 前提・制約
+- Sprint 11のdiff検出・変換スクリプトが完成していることを前提とする。
+- Qiita APIへの認証はQiitaアクセストークンで行い、GitHub Secretsに保存する。
+- ID書き戻しは、GitHub ActionsワークフローからMDXファイルをgit commit & pushして行う（`GITHUB_TOKEN` を使用）。
+- 投稿済みかどうかの判定はfrontmatterの `qiita_id` フィールドの有無で行う（あればPATCH、なければPOST）。
+
+### 機能要件（実装詳細）
+- mainへのpushで `published: true` かつ変更のあった記事がQiitaへ自動投稿または更新される
+- 本文末尾に「この記事は筆者のブログからの転載です → [元記事URL]」が自動付与される（元記事URLはサイトのベースURL + 記事スラッグから生成）
+- 初回投稿（`qiita_id` なし）: Qiita API `POST /api/v2/items` を呼び出し、レスポンスの `id` を元のMDXファイルのfrontmatterに `qiita_id` として追記してコミットする
+- 更新（`qiita_id` あり）: Qiita API `PATCH /api/v2/items/{qiita_id}` を呼び出す
+- `published: false` の記事は変更があっても対象外（投稿しない）
+
+### 要決定事項
+- Qiitaアクセストークンを格納するSecret名: `QIITA_ACCESS_TOKEN`（仮）
+- ID書き戻しコミットのメッセージ形式（例: `chore: write back Qiita IDs [skip ci]`）
+- `published: false` に変更された既存投稿記事をQiita上で非公開に変更するか否か（本スプリントでは「対象外（そのまま放置）」とし、必要なら後続スプリントで対応）
+
+### タスク分解
+1. VeliteのZodスキーマに `qiita_id`（string, optional）フィールドを追加し、既存記事でも `npm run build` が通ることを確認する
+2. Qiita投稿スクリプト（`scripts/crosspost/post-qiita.ts`）を実装する（Sprint 11の変換結果を受け取り、POST/PATCHのAPI呼び出しを行い、レスポンスのIDを返す）
+3. ID書き戻しスクリプトを実装する（frontmatterの `qiita_id` を追記してファイルを上書きし、git commit & pushする）
+4. GitHub Actionsワークフローに `qiita-crosspost` ジョブを追加する（diff検出 → 変換 → 投稿 → ID書き戻し）
+5. `QIITA_ACCESS_TOKEN` をGitHub Secretsに登録する（実際のトークンは運営者が設定）
+6. テスト用記事でワークフローを実行し、Qiitaへの投稿・frontmatterへのID書き戻しを確認する
+
+### Definition of Done
+- [ ] VeliteのZodスキーマに `qiita_id`（optional）が追加されており、`qiita_id` なしの既存記事でも `npm run build` が正常に完了する
+- [ ] mainにpushすると、変更のあった `published: true` の記事がQiitaに投稿または更新される
+- [ ] 初回投稿後、元のMDXファイルのfrontmatterに `qiita_id: <Qiita記事のID>` が追記されてリポジトリにコミットされている
+- [ ] 同一記事を再度pushしたとき（`qiita_id` あり）、Qiita上で新規記事が増えず、既存記事が更新される（二重投稿しない）
+- [ ] Qiita上の記事の本文末尾に「この記事は筆者のブログからの転載です → [元記事URL]」が含まれている
+- [ ] `published: false` の記事に変更を加えてpushしても、Qiitaに投稿・更新されない
+- [ ] GitHub ActionsのSecretsに `QIITA_ACCESS_TOKEN` が設定されており、ワークフローのログにトークンが平文出力されていない
+- [ ] `npm run build` が正常に完了する
+
+---
+
+## Sprint 13: Zenn連携リポジトリのセットアップ + 自動push実装
+
+### 概要
+ZennはAPIを持たないため、Zennが読み取る専用GitHubリポジトリへpushする方式（Zenn公式のGitHub連携）を採用する。Zenn連携リポジトリを作成してZennのGitHub連携設定を行い、auto-blogのGitHub Actionsから変換済みMarkdownをそのリポジトリへ自動pushするジョブを追加する。
+
+### 前提・制約
+- Sprint 11のdiff検出・変換スクリプトが完成していることを前提とする。
+- Zenn連携リポジトリへの書き込みには、auto-blogリポジトリのデフォルト `GITHUB_TOKEN`（スコープが当該リポジトリのみ）では不足するため、追加の認証情報が必要。
+
+### 機能要件（実装詳細）
+- mainへのpushで `published: true` かつ変更のあった記事がZenn連携リポジトリの `articles/{slug}.md` に反映される
+- 変換済みMarkdown（Zenn向けfrontmatter付き）が書き出される
+- スラッグはMDXフォルダ名（`YYYY-MM-DD-slug`）をそのまま使う（→ 要決定事項）
+- 既存ファイルがある場合は上書き（gitの差分pushのためZennで重複記事は生成されない）
+- `published: false` の記事は連携リポジトリに反映されない
+
+### 要決定事項
+- Zenn連携リポジトリ名: `{GitHub username}/zenn-articles`（仮、確定後に更新）
+- 連携リポジトリへの書き込み認証方法: GitHub Personal Access Token（PAT）またはGitHub App（確定後に更新）
+- 書き込み認証を格納するSecret名: `ZENN_REPO_PAT`（仮、PAT使用の場合）
+- 記事slugの生成規則: MDXフォルダ名（`YYYY-MM-DD-slug`）をそのまま使うか、日付を除いた `slug` 部分のみにするか
+- Zenn frontmatterの `emoji` と `type` の決め方（全記事共通デフォルト値か、frontmatterで個別指定できるようにするか）
+
+### タスク分解
+1. Zenn連携リポジトリ（`zenn-articles`相当）をGitHubに作成し、ZennのアカウントページからGitHub連携を設定する
+2. 連携リポジトリへの書き込みに使うPAT（またはGitHub App）を発行し、auto-blogリポジトリのGitHub Secretsに登録する
+3. Zenn向けMarkdownを連携リポジトリに書き出すスクリプト（`scripts/crosspost/push-zenn.ts`）を実装する（連携リポジトリをclone → ファイル差し替え → commit & push）
+4. GitHub Actionsワークフローに `zenn-crosspost` ジョブを追加する（diff検出 → 変換 → 連携リポジトリへpush）
+5. テスト用記事でワークフローを実行し、Zennのダッシュボードに記事が反映されることを確認する
+
+### Definition of Done
+- [ ] Zenn連携リポジトリが作成されており、ZennのGitHub連携設定が完了している（Zennのアカウントページで連携リポジトリが認識されていることを確認）
+- [ ] mainにpushすると、変更のあった `published: true` の記事がZenn連携リポジトリの `articles/{slug}.md` に反映される
+- [ ] 反映後、Zennのダッシュボードで記事が確認できる（新規記事が表示される、または既存記事が更新されている）
+- [ ] 書き出されたMarkdownの先頭に `title`, `emoji`, `type`, `topics`, `published` を含むfrontmatterが含まれている
+- [ ] `published: false` の記事は連携リポジトリに反映されない
+- [ ] 同一記事を再度pushしても、Zennに重複記事が生成されない（同じ `articles/{slug}.md` が上書きされるだけ）
+- [ ] 認証に使うSecret（PATまたはGitHub App秘密鍵）がワークフローのログに平文出力されていない
+- [ ] `npm run build` が正常に完了する
+
+---
+
+## Sprint 14: 冪等性の作り込み・エラー通知・E2E検証
+
+### 概要
+Sprint 11〜13で実装した各クロスポストジョブの信頼性を高める。二重投稿・取りこぼしのない冪等な動作を4つのE2Eシナリオで検証し、APIエラーや認証失敗時の通知手段を整備する。本スプリントでコードを大きく書き換えることは想定しておらず、主に動作確認・修正・通知設定が中心となる。
+
+### 前提・制約
+- Sprint 12（Qiita）・Sprint 13（Zenn）の実装が完成していることを前提とする。
+- エラー通知の基本はGitHub Actionsのワークフロー失敗通知（メール）とする。追加の通知チャンネルは要決定事項。
+
+### 機能要件（実装詳細）
+- 同じ記事を複数回pushしても、Qiita/Zennに重複記事が生成されない
+- APIエラー（4xx/5xx）発生時にワークフローが失敗として記録され、運営者に通知が届く
+- diff検出が正確に機能する（変更していない記事がクロスポストされない）
+- Qiita投稿ステップが失敗した場合、ID書き戻しの不整合が起きない（ID書き戻しはQiita APIが成功した場合のみ実行）
+- Qiitaのレート制限に引っかかった場合、適切なエラーメッセージを残してワークフローが失敗する
+
+### 要決定事項
+- 追加エラー通知チャンネル: Slack / メール / LINE Notify など（GitHub Actionsのデフォルト通知で十分かも含め確定後に更新）
+- 追加通知が必要な場合のSecret名・Webhook URL等
+
+### タスク分解
+1. E2Eシナリオ1（新規投稿）: テスト用記事を `published: true` でpushし、Qiita・Zennの両方に記事が投稿され、frontmatterに `qiita_id` が書き戻されることを確認する
+2. E2Eシナリオ2（更新）: 同じ記事の本文を修正してpushし、QiitaがPATCHで更新（記事IDが変わらない）され、Zenn連携リポジトリが上書き（重複生成なし）になることを確認する
+3. E2Eシナリオ3（`published: false` への変更）: 投稿済み記事のfrontmatterを `published: false` に変更してpushし、QiitaへのPOST/PATCHおよびZennへのpushが実行されないことを確認する
+4. E2Eシナリオ4（対象外のみ変更のpush）: クロスポスト対象の記事を変更せず、他ファイルのみ変更してpushし、QiitaおよびZennへのAPIコールが実行されないことを確認する
+5. APIエラー（認証失敗を意図的に再現して確認）発生時のハンドリングをレビューし、エラーメッセージが適切に残ることを確認する
+6. 追加エラー通知チャンネルを設定する（要決定事項が確定した場合のみ）
+
+### Definition of Done
+- [ ] E2Eシナリオ1: 新規記事のpushでQiita・Zennの両方に記事が投稿され、frontmatterに `qiita_id` が書き戻されている
+- [ ] E2Eシナリオ2: 同一記事の更新pushで、Qiita上の記事IDが変わらず内容が更新され、Zennの連携リポジトリのファイルが上書きされている（Zennで重複記事が生成されていない）
+- [ ] E2Eシナリオ3: `published: false` に変更した記事のpushで、QiitaへのPOST/PATCHおよびZennへのpushが実行されない
+- [ ] E2Eシナリオ4: クロスポスト対象記事を変更せずにpushしたとき、QiitaおよびZennへのAPIコールが実行されない
+- [ ] APIエラー発生時に、ワークフローが失敗として記録され、エラー内容がログに残る
+- [ ] ワークフロー失敗時にGitHub Actionsのデフォルト通知が届くことを確認する
+- [ ] `npm run build` が正常に完了する
