@@ -1,0 +1,35 @@
+name: Zenn Crosspost
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'content/blog/**/*.mdx'
+
+jobs:
+  zenn-crosspost:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Needed so HEAD~1 is available for git diff in detect-changes.ts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Zenn crosspost
+        run: npm run crosspost:zenn
+        env:
+          ZENN_REPO_PAT: ${{ secrets.ZENN_REPO_PAT }}
+          ZENN_REPO: ${{ vars.ZENN_REPO }}
+          SITE_BASE_URL: ${{ secrets.SITE_BASE_URL }}
+          GITHUB_BEFORE: ${{ github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
