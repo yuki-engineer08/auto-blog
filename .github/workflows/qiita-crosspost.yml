@@ -1,0 +1,37 @@
+name: Qiita Crosspost
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'content/blog/**/*.mdx'
+
+jobs:
+  qiita-crosspost:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for git push (write-back-id)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Needed so HEAD~1 is available for git diff in detect-changes.ts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Qiita crosspost
+        run: npm run crosspost:qiita
+        env:
+          QIITA_ACCESS_TOKEN: ${{ secrets.QIITA_ACCESS_TOKEN }}
+          SITE_BASE_URL: ${{ secrets.SITE_BASE_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_BEFORE: ${{ github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}

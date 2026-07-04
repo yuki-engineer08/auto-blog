@@ -49,7 +49,7 @@ function main(): void {
     const { frontmatter, body } = convertMdx(raw, mdxPath);
     const slug = extractSlug(mdxPath);
 
-    const qiitaPayload = buildQiitaPayload(frontmatter, body);
+    const qiitaPayload = buildQiitaPayload(frontmatter, body, slug);
     const zennMarkdown = buildZennMarkdown(frontmatter, body);
 
     results.push({

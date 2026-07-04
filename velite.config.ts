@@ -35,6 +35,7 @@ const posts = defineCollection({
       plain: plainText(),
       // 本文中の h2/h3 見出しから、rehype-slugと一致するアンカーID付きの階層目次を生成する
       toc: s.toc({ minDepth: 2, maxDepth: 3 }),
+      qiita_id: s.string().optional(),
     })
     .transform((data) => {
       // published: false の記事はビルド出力から除外する
