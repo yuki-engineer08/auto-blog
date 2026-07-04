@@ -1,3 +1,5 @@
+import * as fs from "fs";
+import * as path from "path";
 import matter from "gray-matter";
 
 const SITE_BASE_URL =
@@ -44,20 +46,79 @@ export function removeMdxComponents(body: string): string {
 }
 
 /**
- * Converts relative image paths to absolute CloudFront URLs.
- * Input pattern:  ![alt](./relative/path.png)
- * Output pattern: ![alt](https://YOUR_CLOUDFRONT_DOMAIN/blog/{slug}/relative/path.png)
+ * Builds a mapping from relative image paths (e.g. "./thumbnail.png") to
+ * absolute CloudFront URLs (e.g. "https://DOMAIN/static/thumbnail-a61d6e.png")
+ * by reading Velite's build output (.velite/posts.json).
  *
- * @param body - Markdown body text
- * @param slug - Article slug extracted from the MDX file path (e.g., "2025-01-01-example")
+ * Velite renames images to "[name]-[hash:6].[ext]" and places them under /static/.
+ * The compiled `content` field in posts.json already contains the resolved paths,
+ * so we extract them in order and match them positionally with the raw MDX references.
+ *
+ * Falls back to an empty mapping (causing convertImagePaths to use the slug-based URL)
+ * if .velite/posts.json is absent or the article cannot be found.
  */
-export function convertImagePaths(body: string, slug: string): string {
+export function buildImageMapping(
+  slug: string,
+  rawBody: string
+): Record<string, string> {
+  const mapping: Record<string, string> = {};
+  try {
+    const velitePath = path.join(process.cwd(), ".velite", "posts.json");
+    if (!fs.existsSync(velitePath)) return mapping;
+
+    const posts = JSON.parse(fs.readFileSync(velitePath, "utf-8")) as Array<
+      { slug?: string; content?: string } | null
+    >;
+    const post = posts.find((p) => p?.slug === slug);
+    if (!post?.content) return mapping;
+
+    const baseUrl = SITE_BASE_URL.replace(/\/$/, "");
+
+    // Extract relative paths from raw MDX in document order
+    const relativePaths = [...rawBody.matchAll(/!\[[^\]]*\]\((\.\/[^)]+)\)/g)].map(
+      (m) => m[1]
+    );
+    // Extract resolved /static/ paths from the compiled content in document order
+    const staticPaths = [...post.content.matchAll(/src:"(\/static\/[^"]+)"/g)].map(
+      (m) => m[1]
+    );
+
+    for (let i = 0; i < Math.min(relativePaths.length, staticPaths.length); i++) {
+      mapping[relativePaths[i]] = `${baseUrl}${staticPaths[i]}`;
+    }
+  } catch {
+    // Silently fall back to empty mapping
+  }
+  return mapping;
+}
+
+/**
+ * Converts relative image paths to absolute CloudFront URLs.
+ * Uses the Velite-derived imageMapping when available; falls back to the
+ * slug-based path (e.g. /blog/{slug}/filename.png) when a mapping entry
+ * is missing.
+ *
+ * @param body         - Markdown body text
+ * @param slug         - Article slug (e.g. "2025-01-01-example")
+ * @param imageMapping - Mapping built by buildImageMapping(); defaults to {}
+ */
+export function convertImagePaths(
+  body: string,
+  slug: string,
+  imageMapping: Record<string, string> = {}
+): string {
   const baseUrl = SITE_BASE_URL.replace(/\/$/, "");
 
   return body.replace(
-    /!\[([^\]]*)\]\(\.\/([^)]+)\)/g,
+    /!\[([^\]]*)\]\((\.\/[^)]+)\)/g,
     (_match, alt, relPath) => {
-      return `![${alt}](${baseUrl}/blog/${slug}/${relPath})`;
+      // relPath includes the "./" prefix (e.g. "./thumbnail.png")
+      // imageMapping keys also use the "./" prefix, so look up directly.
+      // Fallback strips "./" for the slug-based URL.
+      const resolved =
+        imageMapping[relPath] ??
+        `${baseUrl}/blog/${slug}/${relPath.replace(/^\.\//, "")}`;
+      return `![${alt}](${resolved})`;
     }
   );
 }
@@ -90,7 +151,8 @@ export function convertMdx(
   const slug = extractSlug(mdxPath);
   const { frontmatter, body } = parseFrontmatter(content);
   const bodyWithoutComponents = removeMdxComponents(body);
-  const bodyWithAbsoluteImages = convertImagePaths(bodyWithoutComponents, slug);
+  const imageMapping = buildImageMapping(slug, bodyWithoutComponents);
+  const bodyWithAbsoluteImages = convertImagePaths(bodyWithoutComponents, slug, imageMapping);
 
   return {
     frontmatter,

@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build Velite (resolve image paths)
+        run: npx velite build
+
       - name: Run Zenn crosspost
         run: npm run crosspost:zenn
         env:
