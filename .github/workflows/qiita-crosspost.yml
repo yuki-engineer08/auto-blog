@@ -35,3 +35,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_BEFORE: ${{ github.event.before }}
           GITHUB_SHA: ${{ github.sha }}
+
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "## クロスポスト実行結果" >> $GITHUB_STEP_SUMMARY
+          echo "- 実行日時: $(date '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- トリガーコミット: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
