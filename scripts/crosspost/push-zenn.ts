@@ -87,7 +87,7 @@ export async function pushToZenn(articles: ZennArticle[]): Promise<void> {
     // stdio: 'pipe' prevents the URL (containing the PAT) from being printed.
     console.log(`Cloning ${repo} into temporary directory...`);
     execSync(
-      `git clone --depth 1 https://${pat}@github.com/${repo}.git "${tmpDir}"`,
+      `git clone --depth 1 https://x-access-token:${pat}@github.com/${repo}.git "${tmpDir}"`,
       { stdio: "pipe" }
     );
 
@@ -151,7 +151,7 @@ export async function pushToZenn(articles: ZennArticle[]): Promise<void> {
 
     // Push using the PAT URL; stdio: 'pipe' hides the URL from logs.
     execSync(
-      `git push https://${pat}@github.com/${repo}.git HEAD:main`,
+      `git push https://x-access-token:${pat}@github.com/${repo}.git HEAD:main`,
       { cwd: tmpDir, stdio: "pipe" }
     );
 
