@@ -17,7 +17,7 @@ S3にはファイルが存在する。
 
 トップページは表示される。記事一覧も表示される。でも`/posts/hello`にアクセスすると403。なぜ。
 
-この記事は、その原因を突き止めるまでに半日かかった話だ。
+[Terraform + GitHub Actionsでデプロイパイプラインを組んだ](/blog/2026-06-25-caregiver-built-cicd-with-terraform)直後にこの403に直面した。この記事は、その原因を突き止めるまでに半日かかった話だ。
 
 ---
 
@@ -242,3 +242,5 @@ URLリライト用のJavaScriptファイルは存在していたが、`aws_cloud
 半日かかったが、おかげで以前よりも、Terraformのplan/applyの重要性とCloudFront Functionの役割を理解できた。
 
 詰まった時間は無駄じゃなかった、と思うことにしている。
+
+こうしてブログの土台が整ったところで、次は実際にAWS上で動くサービスを作り始めた。その話は[介護士がAWSでAI事故報告支援ツールを作った話](/blog/2026-06-27-caregiver-built-ai-accident-report-tool)に書く。
