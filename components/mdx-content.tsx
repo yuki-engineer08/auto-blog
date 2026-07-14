@@ -1,6 +1,7 @@
 import * as runtime from "react/jsx-runtime";
 import type { ComponentType } from "react";
 import { Mermaid } from "@/components/mermaid";
+import { RelatedPostCard } from "@/components/related-post-card";
 
 type MdxContentProps = {
   code: string;
@@ -12,7 +13,8 @@ type MdxModule = {
 };
 
 // remarkMermaid（lib/remark-mermaid.ts）が ```mermaid``` ブロックをこの名前で参照する
-const mdxComponents = { Mermaid };
+// RelatedPostCardはMDX本文中に `<RelatedPostCard slug="..." />` と書くと解決される
+const mdxComponents = { Mermaid, RelatedPostCard };
 
 /**
  * Veliteが生成したMDXコンパイル済みコード（関数本体の文字列）を
