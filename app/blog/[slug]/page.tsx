@@ -5,6 +5,7 @@ import { PostPager } from "@/components/post-pager";
 import { ScrollToTopButton } from "@/components/scroll-to-top-button";
 import { TableOfContents } from "@/components/table-of-contents";
 import { TagLink } from "@/components/tag-link";
+import { ZoomableImage } from "@/components/zoomable-image";
 import {
   formatLogDate,
   getAdjacentPosts,
@@ -69,6 +70,16 @@ export default async function BlogPostPage({ params }: Props) {
   return (
     <article className="mx-auto w-full max-w-2xl px-4 py-12">
       <header className="mb-10 border-b border-line pb-8">
+        {post.thumbnail && (
+          <ZoomableImage
+            src={post.thumbnail.src}
+            width={post.thumbnail.width}
+            height={post.thumbnail.height}
+            alt={`${post.title} のサムネイル画像`}
+            triggerClassName="mb-6 block w-full"
+            className="h-auto w-full rounded-sm border border-line"
+          />
+        )}
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-xs text-ink-dim">
           <time dateTime={post.date} className="tracking-wide">
             {formatLogDate(post.date)}
