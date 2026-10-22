@@ -47,8 +47,12 @@ infra/*.tfstate
 infra/*.tfstate.*
 infra/terraform.tfvars
 infra/*.tfplan
+infra/tfplan.out
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 infra/*.tfplan*
+
+# playwright mcp
+/.playwright-mcp/

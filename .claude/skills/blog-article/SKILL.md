@@ -136,6 +136,22 @@ stateDiagram-v2
 - ステータスやライフサイクルの遷移を示したいとき（記事のpublishedフロー、デプロイの状態など）
 - 逆に、要素が1〜2個しかない単純な関係や、一文で説明できる内容には使わない（図にする手間に見合わない）。
 
+## クロスポスト再送のテクニック（Zennレート制限対策）
+
+Zennは新規アカウントへの投稿速度に明示的なレート制限があり（[FAQ](https://zenn.dev/faq#rate-limit)）、1回のpushで反映される記事数にも上限がある。ブロックされた記事を後日リトライする場合の注意点:
+
+- **末尾に空行を1つ追加するだけの無害コミットは、同じ記事に対して1回しか効かない。** `scripts/crosspost/convert-mdx.ts` の `parseFrontmatter` が本文を `body.trim()` するため、mdx側の末尾空白は変換後Markdownに一切残らない。一度そのファイルでこのトリガーを使うと、2回目以降は生成後Markdownが前回と完全一致し、`push-zenn.ts` がdiffなしと判定してpush自体が発生しない（ワークフローログに `No changes detected after staging.` と出る）。
+- **2回目以降の再送には、変換後も残る実質的な差分が必要。** 本文の最後（記事の実コンテンツの直後）に、Markdown標準の参照リンク定義を1行追加するとよい。
+
+  ```
+  [crosspost-retry-YYYYMMDD]: <https://zenn.dev/faq#rate-limit> "re-send trigger"
+  ```
+
+  これはCommonMark標準の構文で、remark/velite・Qiita・Zennいずれのレンダラーでも可視テキストとして表示されず、`removeMdxComponents`（PascalCaseのJSXタグのみ除去）にも引っかからないため安全。
+- **生のHTMLコメント（`<!-- -->`）は使わない。** `velite.config.ts` に `rehype-raw` が設定されておらず、MDXコンパイルでの安全性が未検証のため避ける。
+- 再送前に、対象記事のURLを直接 `https://zenn.dev/{ユーザー名}/articles/{slug}` で開いて404かどうか確認する。ワークフローの成否（success）はzenn-articlesリポジトリへのgit push成功を意味するだけで、Zenn上で実際に公開されたかどうかは別。
+- レート制限による失敗が続く場合、短時間で連続リトライしない（アカウント制限悪化のリスク）。日を改めてから試す。
+
 ## 完了条件（公開前チェック）
 
 - [ ] 執筆前に、サムネイル・本文用の画像の有無を運営者に確認した
